@@ -1,11 +1,6 @@
-install.packages('janitor')
 
 #Read the corona world dataset from csv file
 corona_world <- read.csv("~/GitHub/2img10-group-6/corona_world")
-View(corona_world)
-library(readxl)
-library(janitor)
-
 
 #read corona NL infection per municipality data over time
 Corona_NL_Infections_municipality <- read_excel("COVIDNL.xlsx", sheet = "Infections", na = "0", n_max = 357, range = "A1:AI357")
