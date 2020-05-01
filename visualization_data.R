@@ -11,55 +11,41 @@ if (!require(package = "TDA")) {
   install.packages(pkgs = "TDA")
 }
 library(package = "TDA")
-install.packages('gridGraphics')
+#install.packages('gridGraphics')
 library(gridGraphics)
-install.packages('proj4')
+#install.packages('proj4')
 library(proj4)
-install.packages('rgdal')
+#install.packages('rgdal')
 library(rgdal)
-install.packages('sp')
+#install.packages('sp')
 library(sp)
-#install.packages('globe')
-#library(package = "globe")
+library(ggplot2)
+library(mapproj)
+library(sp)  
 
-plot(NL_municipality_coordinates$Longitude,NL_municipality_coordinates$Latitude)
+#read NL map and tidy it up
+NLD <- readRDS("gadm36_NLD_1_sp.rds")
+NLD_fortified <- fortify(NLD)
 
 mun <- NL_municipality_coordinates$Municipality
 lon <- NL_municipality_coordinates$Longitude
 lat <- NL_municipality_coordinates$Latitude
 
-LatLong <- data.frame(X = lat, Y = lon, Municipality=mun)
-#add data to dataframe where muncipalities are equal
-LatLong$Infections <- Corona_NL_Infections_municipality$`2020-03-30`[1:355] 
-names(LatLong) <- c("X","Y","Municipality", "Infections")
+#map_bounds <- c(left = 1, bottom = 47, right = 16, top = 56)
+#coords.map <- get_stamenmap(map_bounds, zoom = 17, maptype = "toner-lite")
+#plot(coords.map)
 
-# Convert it to a sp object
-coordinates(LatLong) <- ~ Y + X # longitude first
+m <- mapproject(lon,lat)
+K <- data.frame(m,Corona_NL_Infections_municipality[1:355,1:35])
+names(K)<-c("X","Y",names(Corona_NL_Infections_municipality))
+K2 <-K[c(1:355),c(1:2,33)]
+K2[is.na(K2)]=0
 
-# Add a coordinate reference system
-proj4string(LatLong) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
+f <- function(z){round(z/10)}
+names(K2)<-c("X","Y","Z")
 
-# Project using spTransform
-Utm <- spTransform(LatLong, CRS("+proj=utm +zone=11 ellps=WGS84"))
-
-#plot it
-plot(Utm, col=ifelse(is.na(Utm@data$Infections),'red','green'))
-#turn it
-grab_grob <- function(){
-  grid.echo()
-  grid.grab()
-}
-g <- grab_grob()
-grid.newpage()
-pushViewport(viewport(angle=230))
-grid.draw(g)
-
-
-
-
-
-
-
-
-
-
+ggplot(K2, aes(x=X, y=Y))+
+  geom_polygon(data = NLD_fortified, aes(x = long, y = lat, group = group), color = "grey", fill = "white")+
+  geom_point(aes(x=X, y=Y,size=f(as.numeric(Z))), alpha=0.7)+
+  scale_size(range = c(.1, 10), name="Infections")+
+  coord_map()
