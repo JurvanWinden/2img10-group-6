@@ -58,7 +58,65 @@ NL_municipality_coordinates <- read_excel("COVIDNL.xlsx", sheet = "Coords", rang
 
 ### Merging to a single database -------
 # https://r4ds.had.co.nz/tidy-data.html
-hospital <- Corona_NL_Hospitalizations_municipality %>%
+# Assumed that this project ends before 2021
+# City
+hospital_city <- Corona_NL_Hospitalizations_municipality %>%
   pivot_longer(cols = starts_with("2020"), names_to = "date") %>% 
-  mutate(date = as.Date(date ))
-hospital[is.na(hospital)] <- 0 # Sets NA's to 0
+  mutate(date = as.Date(date )) %>% 
+  replace_na( list(value = 0 ) ) %>%
+  left_join(NL_municipality_coordinates )
+infection_city <- Corona_NL_Hospitalizations_municipality %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date") %>% 
+  mutate(date = as.Date(date )) %>% 
+  replace_na( list(value = 0 ) ) %>%
+  left_join(NL_municipality_coordinates )
+if( clean_long_names ){
+  rm(Corona_NL_Hospitalizations_municipality, Corona_NL_Infections_municipality)
+}
+
+## Province -------
+hospital_provinces <- Corona_NL_Hospitalizations_provinces_average %>%
+    pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+    transmute( Province = Province,  Date = as.Date(date) , Averages = value  )  %>%
+    replace_na( list(values = 0)) 
+tmp1 <- Corona_NL_Hospitalizations_provinces_daily %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+  transmute( Province = Province,  Date = as.Date(date) , Daily = value  )  %>%
+  replace_na( list(values = 0))
+tmp2 <- Corona_NL_Hospitalizations_provinces_total %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+  transmute( Province = Province,  Date = as.Date(date) , Total = value  )  %>%
+  replace_na( list(values = 0))
+hospital_provinces <- hospital_provinces %>% 
+  left_join(tmp1 ) %>%
+  left_join(tmp2)
+
+infection_provinces <- Corona_NL_infections_provinces_daily_average %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+  transmute( Province = Province,  Date = as.Date(date) , Averages = value  )  %>%
+  replace_na( list(values = 0)) 
+tmp1 <- Corona_NL_infections_provinces_daily %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+  transmute( Province = Province,  Date = as.Date(date) , Daily = value  )  %>%
+  replace_na( list(values = 0))
+tmp2 <- Corona_NL_infections_provinces_total %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date" ) %>%
+  transmute( Province = Province,  Date = as.Date(date) , Total = value  )  %>%
+  replace_na( list(values = 0))
+hospital_provinces <- hospital_provinces %>% 
+  left_join(tmp1 ) %>%
+  left_join(tmp2)
+
+# Cleanup 
+rm(tmp1, tmp2)
+if(clean_long_names ){
+  rm(Corona_NL_Hospitalizations_provinces_average, Corona_NL_Hospitalizations_provinces_daily, Corona_NL_Hospitalizations_provinces_total)
+  rm(Corona_NL_infections_provinces_daily, Corona_NL_infections_provinces_daily_average, Corona_NL_infections_provinces_total)
+  rm(NL_municipality_coordinates)
+}
+
+### World ---- 
+# wc <- read_csv(file = "country_centroids_az8.csv")
+
+
+rm(i, clean_long_names)

@@ -34,4 +34,5 @@ theme_set(theme_linedraw()) # ggplot theme
 # Sys.setlocale(locale ="en_GB.UTF-8") #sets locale to brittish english
 
 # run the load dataset file.  -------------
-# source('corona_datasets.R')
+clean_long_names <- T 
+source('corona_datasets.R')
