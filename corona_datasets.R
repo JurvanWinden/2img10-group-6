@@ -1,6 +1,6 @@
 
 #Read the corona world dataset from csv file
-corona_world <- read.csv("~/GitHub/2img10-group-6/corona_world")
+corona_world <- read.csv("./corona_world")
 
 #read corona NL infection per municipality data over time
 Corona_NL_Infections_municipality <- read_excel("COVIDNL.xlsx", sheet = "Infections", na = "0", n_max = 357, range = "A1:AI357")
@@ -55,3 +55,10 @@ for (i in 2:18) {
 
 #read the coordinates from the Dutch municipalities
 NL_municipality_coordinates <- read_excel("COVIDNL.xlsx", sheet = "Coords", range = "A1:D356")
+
+### Merging to a single database -------
+# https://r4ds.had.co.nz/tidy-data.html
+hospital <- Corona_NL_Hospitalizations_municipality %>%
+  pivot_longer(cols = starts_with("2020"), names_to = "date") %>% 
+  mutate(date = as.Date(date ))
+hospital[is.na(hospital)] <- 0 # Sets NA's to 0

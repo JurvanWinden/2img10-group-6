@@ -1,26 +1,3 @@
-if (!require(package = "FNN")) {
-  install.packages(pkgs = "FNN")
-}
-if (!require(package = "igraph")) {
-  install.packages(pkgs = "igraph")
-}
-if (!require(package = "scales")) {
-  install.packages(pkgs = "scales")
-}
-if (!require(package = "TDA")) {
-  install.packages(pkgs = "TDA")
-}
-library(package = "TDA")
-install.packages('gridGraphics')
-library(gridGraphics)
-install.packages('proj4')
-library(proj4)
-install.packages('rgdal')
-library(rgdal)
-install.packages('sp')
-library(sp)
-#install.packages('globe')
-#library(package = "globe")
 
 plot(NL_municipality_coordinates$Longitude,NL_municipality_coordinates$Latitude)
 
