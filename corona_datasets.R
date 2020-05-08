@@ -116,7 +116,9 @@ if(clean_long_names ){
 }
 
 ### World ---- 
-# wc <- read_csv(file = "country_centroids_az8.csv")
+wc <- read_csv( "world-coords.csv", col_names = T)
 
-
+tmp <- corona_world %>%  
+  left_join(wc)
+rm(wc, tmp)
 rm(i, clean_long_names)
