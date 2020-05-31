@@ -12,7 +12,8 @@ requiredPackages <- c(
   "gridGraphics",
   "rgdal", 
   "sp",
-  "TDAmapper"
+  "TDAmapper", # mapper package
+  "igraph" # graph package for TDAmapper.
   )
 
 for( i in requiredPackages ){
