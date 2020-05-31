@@ -11,7 +11,8 @@ requiredPackages <- c(
   "TDA",
   "gridGraphics",
   "rgdal", 
-  "sp"
+  "sp",
+  "TDAmapper"
   )
 
 for( i in requiredPackages ){
