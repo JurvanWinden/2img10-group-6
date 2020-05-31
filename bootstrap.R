@@ -13,7 +13,8 @@ requiredPackages <- c(
   "rgdal", 
   "sp",
   "TDAmapper", # mapper package
-  "igraph" # graph package for TDAmapper.
+  "igraph", # graph package for TDAmapper.
+  "fastcluster"
   )
 
 for( i in requiredPackages ){
