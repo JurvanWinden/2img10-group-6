@@ -12,9 +12,9 @@ requiredPackages <- c(
   "gridGraphics",
   "rgdal", 
   "sp",
-  "TDAmapper", # mapper package
-  "igraph", # graph package for TDAmapper.
-  "fastcluster"
+  "TDAmapper",   # mapper package
+  "igraph",      # graph package for TDAmapper.
+  "fastcluster"  # clustering, masks stat::hclust()
   )
 
 for( i in requiredPackages ){
