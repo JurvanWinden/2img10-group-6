@@ -120,7 +120,7 @@ wc <- read_csv( "world-coords.csv", col_names = T)
 
 corona_world <- corona_world %>%  
   left_join(wc)
-rm(wc, tmp)
+rm(wc)
 rm(i, clean_long_names)
 
 ## Conversions --------
