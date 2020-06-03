@@ -25,12 +25,7 @@ for( i in requiredPackages ){
   library(i , character.only = T)
 }
 rm(i, requiredPackages )
-# Set correct Work Directory ----------------
-switch (Sys.info()[4]  
-    ,"lenovo"     = setwd("~/Nextcloud/TUE/Current/2IMG10 - Topological Data Analysis/2img10-group-6/" )
-    ,"bakbeestje" = setwd("~/Nextcloud/TUE/Current/2IMG10 - Topological Data Analysis/2img10-group-6/" )
-    )
-    
+
 # Settings ----------------------
 formals(txtProgressBar)$style <- 3 # Set default style to 3.
 theme_set(theme_linedraw()) # ggplot theme
