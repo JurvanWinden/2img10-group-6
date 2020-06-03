@@ -5,24 +5,27 @@
 
 # Read stuff & Install stuff --------------
 requiredPackages <- c( 
-  "tidyverse", 
-  "readxl",
-  "janitor",
-  "TDA",
-  "gridGraphics",
-  "rgdal", 
-  "sp",
-  "TDAmapper",   # mapper package
-  "igraph",      # graph package for TDAmapper.
-  "fastcluster"  # clustering, masks stat::hclust()
-  )
+    "tidyverse", 
+    "readxl",
+    "janitor",
+    "TDA",
+    "gridGraphics",
+    "rgdal", 
+    "sp",
+    "TDAmapper",   # mapper package
+    "igraph",      # graph package for TDAmapper.
+    "fastcluster"  # clustering, masks stat::hclust()
+)
 
 for( i in requiredPackages ){
-  print(i)
-  if (!require(i , character.only = T )) {
-    install.packages(i)
-  }
-  library(i , character.only = T)
+   
+    if (!require(i , character.only = T )) {
+        install.packages(i)
+    }
+    if ( !( i %in% (.packages() ) ) ) {
+        print("loading package", i)
+        library(i , character.only = T)
+    } 
 }
 rm(i, requiredPackages )
 

@@ -118,7 +118,11 @@ if(clean_long_names ){
 ### World ---- 
 wc <- read_csv( "world-coords.csv", col_names = T)
 
-tmp <- corona_world %>%  
+corona_world <- corona_world %>%  
   left_join(wc)
 rm(wc, tmp)
 rm(i, clean_long_names)
+
+## Conversions --------
+hospital_city$value <- as.integer(hospital_city$value)
+infection_city$value <- as.integer(infection_city$value)
