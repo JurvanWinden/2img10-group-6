@@ -126,3 +126,9 @@ rm(i, clean_long_names)
 ## Conversions --------
 hospital_city$value <- as.integer(hospital_city$value)
 infection_city$value <- as.integer(infection_city$value)
+
+
+corona_world$dateRep <- as.Date(corona_world$dateRep)
+
+##### Real dataset: the Miller-Reaven diabetes study
+

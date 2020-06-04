@@ -11,6 +11,7 @@ requiredPackages <- c(
     "TDA",
     "gridGraphics",
     "rgdal", 
+    "maps",
     "sp",
     "TDAmapper",   # mapper package
     "igraph",      # graph package for TDAmapper.
@@ -23,7 +24,8 @@ for( i in requiredPackages ){
         install.packages(i)
     }
     if ( !( i %in% (.packages() ) ) ) {
-        print("loading package", i)
+        print("loading package:")
+        print(i)
         library(i , character.only = T)
     } 
 }
