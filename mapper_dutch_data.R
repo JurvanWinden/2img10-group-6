@@ -75,8 +75,8 @@ vertex.size
 
 # Mapper graph with the vertices colored in function of latitude data and vertex size proportional to the number of points inside
 value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
-V(infection_city_graph)$color <- vertex.size
-V(infection_city_graph)$size <- value.mean.vertex.grey
+V(infection_city_graph)$color <- value.mean.vertex.grey
+V(infection_city_graph)$size <- vertex.size
 plot(infection_city_graph,main ="Mapper Graph")
 legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
        col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
@@ -89,3 +89,6 @@ legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large
 #              Value = "Linkvalue", NodeID = "Nodename",
 #              Group = "Nodegroup", opacity = 1, 
 #              linkDistance = 10, charge = -40)  
+
+
+
