@@ -36,15 +36,15 @@ infection_city_dist = dist(infection_city_comp[,5:6])
 #create mapper
 infection_city_mapper <- mapper(dist_object = infection_city_dist,
                                 filter_values = infection_city_comp$Latitude,
-                                num_intervals = 12,
-                                percent_overlap = 80,
-                                num_bins_when_clustering = 24)
+                                num_intervals = 60,
+                                percent_overlap = 90,
+                                num_bins_when_clustering = 5)
 
 # infection_city_mapper <- mapper(dist_object = infection_city_dist,
-#                                 filter_values = infection_city_comp$value,
-#                                 num_intervals = 75,
-#                                 percent_overlap = 75,
-#                                 num_bins_when_clustering = 20)
+#                                 filter_values = infection_city_comp$Latitude,
+#                                 num_intervals = 60,
+#                                 percent_overlap = 90,
+#                                 num_bins_when_clustering = 5)
 
 
 # show the mapper
@@ -132,9 +132,9 @@ infection_corona_world_dist = dist(infection_corona_world[,12:13])
 #create mapper
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
                                 filter_values = infection_corona_world$Longitude,
-                                num_intervals = 30,
-                                percent_overlap = 40,
-                                num_bins_when_clustering = 20)
+                                num_intervals = 80,
+                                percent_overlap = 90,
+                                num_bins_when_clustering =10)
 
 # show the mapper
 infection_corona_world_graph <- graph.adjacency(infection_corona_world_mapper$adjacency, mode="undirected")
