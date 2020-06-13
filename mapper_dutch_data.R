@@ -18,80 +18,65 @@ source("bootstrap.R")
 #infection_city_mapper <- mapper(dist_object = infection_city_dist),
 
 # delete all rows where an NA occurs
-infection_city_comp <- na.omit(infection_city)
-# infection_city_comp$ll <- infection_city_comp$Latitude * infection_city_comp$Longitude
+infection_city_comp_org <- na.omit(infection_city)
 
-#only take data of one day
-infection_city_comp <- infection_city_comp %>% filter(date == '2020-04-20')
-infection_city_comp
+# take data of one day
+infection_city_comp <- infection_city_comp_org %>% filter(date == '2020-04-20')
 
 # plot Dutch data with dot size based on cases
-ggplot(infection_city_comp) +
-  geom_point(aes(x= Longitude , y = Latitude , size = value)) 
+# ggplot(infection_city_comp) +
+#   geom_point(aes(x= Longitude , y = Latitude , size = value)) 
 
-# determine distance on the dutch data
-infection_city_dist = dist(infection_city_comp[,5:6])
-#infection_city_dist <- na.omit(infection_city_dist)
+# determine the manhattan distance (Absolute distance between the two vectors) on the dutch data
+infection_city_dist = dist(infection_city_comp[,5:6], method = "manhattan")
 
-#create mapper
+
+coord = infection_city_comp[,5:6]
+# https://rdrr.io/cran/TDA/man/kde.html
+# Kernel Density Estimator over a Grid of Points
+KDE <- kde(coord, coord, 0.3)
+
+
+# mapper based on manhattan distande and filter on KDE
 infection_city_mapper <- mapper(dist_object = infection_city_dist,
-                                filter_values = infection_city_comp$Latitude,
+                                filter_values = KDE,
                                 num_intervals = 60,
                                 percent_overlap = 90,
                                 num_bins_when_clustering = 5)
 
-# infection_city_mapper <- mapper(dist_object = infection_city_dist,
-#                                 filter_values = infection_city_comp$Latitude,
-#                                 num_intervals = 60,
-#                                 percent_overlap = 90,
-#                                 num_bins_when_clustering = 5)
-
-
-# show the mapper
+# Create a graph based on the mapper
 infection_city_graph <- graph.adjacency(infection_city_mapper$adjacency, mode="undirected")
-plot(infection_city_graph, layout = layout.auto(infection_city_graph) )
+# plot(infection_city_graph, layout = layout.auto(infection_city_graph) )
 
 
-# determine the mean values of the number of infections
+# determine the mean values of the number of infections per vertex of the graph
 value.mean.vertex <- rep(0,infection_city_mapper$num_vertices)
 for (i in 1:infection_city_mapper$num_vertices){
   points.in.vertex <- infection_city_mapper$points_in_vertex[[i]]
   value.mean.vertex[i] <-mean((infection_city_comp$value[points.in.vertex]))
 }
-value.mean.vertex
 
-#set vertex size based on how many cities are represented by this vertex
+# set vertex size based on how many cities are represented by this vertex
 vertex.size <- rep(0,infection_city_mapper$num_vertices)
 for (i in 1:infection_city_mapper$num_vertices){
   points.in.vertex <- infection_city_mapper$points_in_vertex[[i]]
   vertex.size[i] <- length((infection_city_mapper$points_in_vertex[[i]]))
 }
-vertex.size
-# for (i in 1:length(vertex.size)){
-#   vertex.size[i] <- as.integer(vertex.size[i] / max(vertex.size) * 100)
-#   }
-# 
-# class(vertex.size[i])
 
-# Mapper graph with the vertices colored in function of latitude data and vertex size proportional to the number of points inside
+# Mapper graph with the vertices colored in function of number of infections and vertex size proportional to the number of points inside
 value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
 V(infection_city_graph)$color <- value.mean.vertex.grey
 V(infection_city_graph)$size <- vertex.size
+infection_city_graph
+# remark: If the plot is regenerated with the same data, the vertices are not drawn on the same place, but same vertex is represented by the same number.
+# The number of holes and connected components are the same, independent of the day, the size of the vertex is also the same, only the color changes over time.
 plot(infection_city_graph,main ="Mapper Graph")
 legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
        col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
 
-# library(networkD3)
-# MapperNodes <- mapperVertices(infection_city_mapper, 1:100 )
-# MapperLinks <- mapperEdges(infection_city_mapper)
-# forceNetwork(Nodes = MapperNodes, Links = MapperLinks,
-#              Source = "Linksource", Target = "Linktarget",
-#              Value = "Linkvalue", NodeID = "Nodename",
-#              Group = "Nodegroup", opacity = 1,
-#              linkDistance = 10, charge = -40)
 
 
-
+             
 
 
 
@@ -164,4 +149,29 @@ V(infection_corona_world_graph)$size <- vertex.size
 plot(infection_corona_world_graph,main ="Mapper Graph")
 legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
        col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
