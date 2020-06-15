@@ -96,30 +96,49 @@ legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large
 # plot world map with dot sizes based on cases
 world_map <- map_data("world")
 
-ggplot(corona_world) +
-  geom_point(aes(x= Longitude , y = Latitude , size = cases, colour="red")) +
-  geom_map(dat=world_map, map = world_map,
-           aes(map_id=region), fill="white", color="black") +
-  expand_limits(x = world_map$long, y = world_map$lat)
+# corona_world2 <- na.omit(corona_world)
+# corona_world2 <- corona_world2%>% filter(day == '20', month == '4')
+# 
+# corona_world3 <- head(corona_world2, 20)
+# corona_world3
+# ggplot(corona_world3) +
+#   geom_point(aes(x= Longitude , y = Latitude, colour="red")) +
+#   geom_map(dat=world_map, map = world_map,
+#            aes(map_id=region), fill="white", color="black") +
+#   expand_limits(x = world_map$long, y = world_map$lat)
+
 
 # delete all rows where an NA occurs
 infection_corona_world <- na.omit(corona_world)
 
-#only take data of one day
-infection_corona_world <- infection_corona_world %>% filter(day == '20')
-infection_corona_world <- infection_corona_world %>% filter(month == '4')
-infection_corona_world
+#only take data of Europe
+infection_corona_world_Europe1 <- infection_corona_world %>% filter(continentExp == 'Europe')
 
-# determine distance on the world data
-infection_corona_world_dist = dist(infection_corona_world[,12:13])
+#Get the number of deaths over complete time by country
+sumDeaths <- aggregate(infection_corona_world_Europe1$cases, by=list(Category=infection_corona_world_Europe1$countriesAndTerritories), FUN=sum)
+colnames(sumDeaths) <- c("countriesAndTerritories", "sumDeaths")
 
+infection_corona_world_Europe1 <- merge(infection_corona_world_Europe1, sumDeaths,by="countriesAndTerritories")
+#Filter on a day
+infection_corona_world_Europe <- infection_corona_world_Europe1 %>% filter(day == '20', month == '4',)
 
-#create mapper
+# determine the manhattan distance (Absolute distance between the two vectors) on the Europe data
+infection_corona_world_dist = dist(infection_corona_world_Europe[,12:13], method = "manhattan")
+
+coord = infection_corona_world_Europe[,12:13]
+# https://rdrr.io/cran/TDA/man/kde.html
+# Kernel Density Estimator over a Grid of Points
+KDE <- kde(coord, coord, 0.06)
+
+# determine the ratio
+infection_corona_world_Europe$ratio <- infection_corona_world_Europe$sumDeaths / infection_corona_world_Europe$popData2018
+
+# mapper based on manhattan distande and filter on KDE
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
-                                filter_values = infection_corona_world$Longitude,
-                                num_intervals = 80,
-                                percent_overlap = 90,
-                                num_bins_when_clustering =10)
+                                filter_values = infection_corona_world_Europe$ratio,
+                                num_intervals = 15,
+                                percent_overlap = 95,
+                                num_bins_when_clustering = 5)
 
 # show the mapper
 infection_corona_world_graph <- graph.adjacency(infection_corona_world_mapper$adjacency, mode="undirected")
@@ -130,9 +149,9 @@ plot(infection_corona_world_graph, layout = layout.auto(infection_corona_world_g
 value.mean.vertex <- rep(0,infection_corona_world_mapper$num_vertices)
 for (i in 1:infection_corona_world_mapper$num_vertices){
   points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
-  value.mean.vertex[i] <-mean((infection_corona_world$deaths[points.in.vertex]))
+  value.mean.vertex[i] <-mean((infection_corona_world_Europe$deaths[points.in.vertex]))
 }
-value.mean.vertex
+# value.mean.vertex
 
 #set vertex size based on how many cities are represented by this vertex
 vertex.size <- rep(0,infection_corona_world_mapper$num_vertices)
@@ -140,7 +159,7 @@ for (i in 1:infection_corona_world_mapper$num_vertices){
   points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
   vertex.size[i] <- length((infection_corona_world_mapper$points_in_vertex[[i]]))
 }
-vertex.size
+# vertex.size
 
 # Mapper graph with the vertices colored in function of latitude data and vertex size proportional to the number of points inside
 value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
