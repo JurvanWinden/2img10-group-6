@@ -1,0 +1,286 @@
+---
+title: "Covid Mapper Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+Population density 2015 data source:
+
+https://www.volksgezondheidenzorg.info/onderwerp/bevolking/regionaal-internationaal/bevolkingsomvang
+
+```{r}
+# Package installs
+install.packages("TDAmapper")
+install.packages("ggplot2")
+install.packages("devtools")
+devtools::install_github("paultpearson/TDAmapper")
+devtools::install_github("christophergandrud/networkD3")
+install.packages("factoextra")
+install.packages("cluster")
+install.packages("magrittr")
+```
+
+```{r}
+# Import packages
+library(devtools)
+library(TDAmapper)
+library(ggplot2)
+library(igraph)
+library(networkD3)
+library("cluster")
+library("factoextra")
+library("magrittr")
+```
+
+Get coordinate, infection data from NL municipalities. We read the infections as a list of dataframes, the coordinates are a separate dataframe.
+
+```{r}
+# Check working directory and read csv
+wd = getwd()
+
+coords_directory <- ("./data/COVIDNL_COORDS.csv/")
+popdensity_directory <- ("./data/bevdh2015.csv/")
+
+coords = read.csv(coords_directory, header = TRUE, sep=",", stringsAsFactors = FALSE)
+popdensity = read.csv(popdensity_directory, header = TRUE, sep=";", stringsAsFactors = FALSE, colClasses=c("Inwoners.2015"="character","Inwoners.per.km2"="character"))
+
+# Drop useless columns
+popdensity = subset(popdensity, select = -c(ID, Indicator))
+coords = subset(coords, select = -c(X))
+
+# Remove the . values in the file as they screw up numerical values
+popdensity$Inwoners.2015 <- as.numeric(sub('\\.', '', popdensity$Inwoners.2015))
+popdensity$Inwoners.per.km2 <- as.numeric(sub('\\.', '', popdensity$Inwoners.per.km2))
+
+
+# Set wd to data folder so we can read all the csv's as a list
+tempwd = paste(wd, "data", "COVIDNL", sep="/")
+tempwd
+
+setwd(tempwd)
+
+# Read csv's as list
+temp = list.files(pattern="*.csv")
+infections = lapply(temp, read.delim, header = TRUE, sep = ";", stringsAsFactors = FALSE)
+
+# Set wd back
+setwd(wd)
+
+# Show read data, the coordinates contain some column 'x' but we just ignore this...
+coords
+popdensity
+infections
+length(infections)
+
+```
+
+Do some merging so that we have both the coordinate and infection data in each dataframe.
+
+```{r}
+# Merge data on municipality
+merged = list();
+coords_popdensity <- merge(x=coords, y=popdensity, by.x=c('Municipality'), by.y=c('Gemeente'), sort = TRUE)
+
+# Not the most efficient but it does the job,
+# we see that not all files have the same format so we check for the 2 most common ones
+for (inf in infections) {
+  
+  
+  if("Gemeente" %in% colnames(inf)) {
+    
+    new = merge(x=coords_popdensity, y=inf, by.x=c('Municipality'), by.y=c('Gemeente'), sort = TRUE)
+    merged <- c(merged, list(new))
+    
+  } else if("Category" %in% colnames(inf)) {
+    
+    new = merge(x=coords_popdensity, y=inf, by.x=c('Municipality'), by.y=c('Category'), sort = TRUE)
+    merged <- c(merged, list(new))
+    
+  } # Disregard others
+  
+}
+
+# Show a merged dataframe
+print(merged[[1]])
+
+```
+
+
+Compute interesting features from the data.
+
+```{r}
+# TODO
+
+
+```
+
+Implement a basic mapper from TDAmapper library.
+See also the tutorial from: http://bertrand.michel.perso.math.cnrs.fr/Enseignements/TDA/Mapper.html
+
+```{r}
+
+# Creates a mapper object using the TDAmapper library
+create_tda_mapper <- function(filter_values, x_coord, y_coord, intervals=25, num_bins=10, overlap=30) {
+    
+    basic.coords = data.frame(x_coord, y_coord)
+    # Compute distance matrix
+    basic.dist = dist(basic.coords)
+    length(filter_values)
+    if(length(filter_values) == 2) {
+      twodim_intervals = c(intervals, intervals)
+      return (
+        mapper2D(
+          dist_object = basic.dist,
+          filter_values = filter_values, # Expects a list of two vectors
+          num_intervals = twodim_intervals,
+          percent_overlap = overlap,
+          num_bins_when_clustering = num_bins
+        )
+      )
+    }
+    
+    return (
+      mapper(
+          dist_object = basic.dist,
+          filter_values = filter_values, 
+          num_intervals = intervals,
+          percent_overlap = overlap,
+          num_bins_when_clustering = num_bins
+      )
+    )
+}
+
+# Creates a basic plot of the given mapper object (TDAmapper class)
+# Should also work if you give a custom object with adjacency matrix of nodes (Not tested)
+plot_mapper <- function (mapper) {
+    # Plot graph 
+    graph <- graph.adjacency(mapper$adjacency, mode="undirected")
+    plot(graph, layout = layout.auto(graph) )
+    return(graph)
+}
+
+# Grab some data
+first = merged[[1]]
+second = merged[[4]]
+third = merged[[10]]
+
+firstMapper = create_tda_mapper(first$Aantal, first$Latitude, first$Longitude)
+plot_mapper(firstMapper)
+
+secondMapper = create_tda_mapper(second$Aantal, second$Latitude, second$Longitude)
+plot_mapper(secondMapper)
+
+thirdMapper = create_tda_mapper(third$Aantal, third$Latitude, third$Longitude)
+plot_mapper(thirdMapper)
+
+```
+A more advanced example using the networkD3 library which yields way nicer visualizations
+
+```{r}
+# To be sure that we have this imported
+# library(networkD3)
+
+# Create a mapper object
+mapper = create_tda_mapper(first$Aantal, first$Inwoners.per.km2, first$Inwoners.per.km2, 20, 10, 50)
+
+
+plotForceNetwork <- function(mapper, labels) {
+  MapperNodes <- mapperVertices(mapper, labels)
+  MapperLinks <- mapperEdges(mapper)
+  
+  forceNetwork(
+    Nodes = MapperNodes, Links = MapperLinks, 
+    Source = "Linksource", Target = "Linktarget",
+    Value = "Linkvalue", NodeID = "Nodename",
+    Group = "Nodegroup", opacity = 1, 
+    linkDistance = 25, charge = -10,
+    Nodesize = "Nodesize", legend = T
+  ) 
+}
+
+plotForceNetwork(mapper, first$Aantal)
+
+```
+
+Other mapper solutions:
+
+More advanced force network which computes some other statistics on the nodes
+
+```{r}
+mapper = create_tda_mapper(first$Aantal, first$Inwoners.per.km2, first$Inwoners.per.km2)
+
+vertex.mean = c()
+mapper$points_in_level_set
+for (i in 1:length(mapper$points_in_vertex)){
+  vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
+}
+
+#vertex.size <- rep(0,length(mapper$points_in_vertex))
+#for (i in 1:length(mapper$points_in_vertex)){
+#  points.in.vertex <- mapper$points_in_vertex[[i]]
+#  vertex.size[i] <- length((mapper$points_in_vertex[[i]]))
+#}
+
+MapperNodes <- mapperVertices(mapper, first$Aantal )
+MapperNodes$Nodesize <- vertex.mean
+print(vertex.mean)
+MapperLinks <- mapperEdges(mapper)
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodename",
+            Group = "Nodegroup", opacity = 1, 
+            linkDistance = 100, charge = -20,legend = TRUE,
+            Nodesize = "Nodesize")  
+```
+
+Trying out custom clustering + filter values:
+Also see: https://www.datanovia.com/en/blog/types-of-clustering-methods-overview-and-quick-start-r-code/
+
+```{r}
+first.subset <- subset(first, select = c(Aantal, Inwoners.per.km2))
+second.subset <- subset(second, select = c(Aantal, Inwoners.per.km2))
+third.subset <- subset(third, select = c(Aantal, Inwoners.per.km2))
+
+# I assume here that the ordering is correct
+row.names(first.subset) <- first$Municipality
+row.names(second.subset) <- second$Municipality
+row.names(third.subset) <- third$Municipality
+
+print(first.subset)
+print(second.subset)
+print(third.subset)
+
+# Computes the 'optimal' number of kmeans clusters for our data
+fviz_nbclust(first.subset, kmeans, method = "gap_stat")
+fviz_nbclust(second.subset, kmeans, method = "gap_stat")
+fviz_nbclust(third.subset, kmeans, method = "gap_stat")
+
+
+kmeans.first <- kmeans(first.subset, 8, nstart = 30)
+kmeans.second <- kmeans(second.subset, 8, nstart = 30)
+kmeans.third <- kmeans(third.subset, 8, nstart = 30)
+# Visualize
+fviz_cluster(kmeans.first, data = first.subset,
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+
+fviz_cluster(kmeans.second, data = second.subset,
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+
+fviz_cluster(kmeans.third, data = third.subset,
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+
+```
