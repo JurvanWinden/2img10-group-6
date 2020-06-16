@@ -45,8 +45,8 @@ Get coordinate, infection data from NL municipalities. We read the infections as
 # Check working directory and read csv
 wd = getwd()
 
-coords_directory <- ("./data/COVIDNL_COORDS.csv/")
-popdensity_directory <- ("./data/bevdh2015.csv/")
+coords_directory <- ("./data/COVIDNL_COORDS.csv")
+popdensity_directory <- ("./data/bevdh2015.csv")
 
 coords = read.csv(coords_directory, header = TRUE, sep=",", stringsAsFactors = FALSE)
 popdensity = read.csv(popdensity_directory, header = TRUE, sep=";", stringsAsFactors = FALSE, colClasses=c("Inwoners.2015"="character","Inwoners.per.km2"="character"))

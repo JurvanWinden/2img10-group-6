@@ -15,6 +15,9 @@ The preview shows you a rendered HTML copy of the contents of the editor. Conseq
 
 ```{r}
 # First set your working directory
+
+# wd = getwd()
+# setwd(wd)
 setwd('C:/Users/s153944/Documents/uni jaar 5/2IMG10 Topological data analysis/groupproject/2img10-group-6')
 
 # get needed packages and import data
@@ -93,8 +96,10 @@ Define a filter metric
  for (i in 1:length(infection_corona_world$deaths ) ) {
    infection_corona_world$ratio[i] <-
     if (infection_corona_world$deaths[i] > 0){
-                                            round(infection_corona_world$cases[i] / infection_corona_world$deaths[i])
-    }else {0}
+      
+      round(infection_corona_world$cases[i] / infection_corona_world$deaths[i])
+      
+    } else {0}
 }
 #end world
 
@@ -113,6 +118,7 @@ Define a filter metric
   
 # infection_corona_world_Europe$ratio
 # infection_corona_world_Europe
+infection_corona_world$ratio
 
 ```
 
@@ -131,15 +137,24 @@ Define the mapper
 
 #begin world mapper
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
-                                filter_values = infection_corona_world$ratio,
-                                num_intervals = 10,
+                                filter_values = infection_corona_world$sumDeaths,
+                                num_intervals = 20,
                                 percent_overlap = 80,
-                                num_bins_when_clustering = 15)
+                                num_bins_when_clustering = 30)
+
+# 2d version
+infection_corona_world_mapper2d <- mapper(dist_object = infection_corona_world_dist,
+                                filter_values = list(infection_corona_world$popData2018, infection_corona_world$cases),
+                                num_intervals = c(10,10),
+                                percent_overlap = 90,
+                                num_bins_when_clustering = 30)
 #end world
 
 # show the mapper
 infection_corona_world_graph <- graph.adjacency(infection_corona_world_mapper$adjacency, mode="undirected")
 plot(infection_corona_world_graph, layout = layout.auto(infection_corona_world_graph) )
+infection_corona_world_graph2 <- graph.adjacency(infection_corona_world_mapper$adjacency, mode="undirected")
+plot(infection_corona_world_graph2, layout = layout.auto(infection_corona_world_graph) )
 ```
 
 
@@ -194,8 +209,8 @@ Plot a mapper with nicer looks
 
 ```{r}
 library(networkD3)
-MapperNodes <- mapperVertices(infection_corona_world_mapper, 1:1000 )
-MapperLinks <- mapperEdges(infection_corona_world_mapper)
+MapperNodes <- mapperVertices(infection_corona_world_mapper2d, 1:1000 )
+MapperLinks <- mapperEdges(infection_corona_world_mapper2d)
 
 # create legend with the corresponding country names in stead of row numbers
 countries <- MapperNodes$Nodename
