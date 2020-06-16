@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+Oeh Shell
+```{bash}
+/usr/bin/ls()
+
+/usr/bin/echo "ping"
+```
+Sadness it doesn't work. 
+```{r}
+clean_long_names <- T
+source("bootstrap.R")
+```
+Now the stuff is loaded in. 
+```{r}
+problems(corona_world)
+problem <- corona_world %>% 
+  filter(is.na(Latitude) ) %>%
+  select(countriesAndTerritories, countryterritoryCode , geoId)%>%
+  unique()
+problemss <- corona_world %>% 
+  filter(is_empty(geoId) ) %>%
+  select(countriesAndTerritories, countryterritoryCode , geoId)%>%
+  unique() 
+problemss
+
+```
+That is solved, now check that the coordinates are correct. 
+```{r}
+worldmap <- map_data("world")
+ggplot(worldmap, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white")
+
+```
+
+```{r}
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("rgeos")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+ggplot() +
+  geom_sf(data = world) +
+  geom_point(data = corona_world, aes( x = Longitude, y = Latitude) , color = "red")
+
+```
+That does not work. 
+```{r}
+ggplot(corona_world) +
+  geom_point(aes( Longitude, Latitude))
+```
+```{r}
+corona_world[which(corona_world$Latitude > 100),] 
+```
+That problem is now solved as well. 
+
+```{r}
+ggplot(corona_world) +
+  geom_text(aes( x= Longitude, y = Latitude, label = geoId ))
+warnings()
+```
+Jpg is a cruise ship on international waters. asdf

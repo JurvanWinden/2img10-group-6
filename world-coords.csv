@@ -64,7 +64,7 @@ EG ,26.820553 ,30.802498 ,Egypt
 EH ,24.215527 ,-12.885834 ,Western Sahara
 ER ,15.179384 ,39.782334 ,Eritrea
 ES ,40.463667 ,-3.74922 ,Spain
-ET ,9.145 ,40.489673 ,Ethiopia
+ET ,9.145, 40.489673 ,Ethiopia
 FI ,61.92411 ,25.748151 ,Finland
 FJ ,-16.578193 ,179.414413 ,Fiji
 FK ,-51.796253 ,-59.523613 ,Falkland Islands [Islas Malvinas]
@@ -72,7 +72,7 @@ FM ,7.425554 ,150.550812 ,Micronesia
 FO ,61.892635 ,-6.911806 ,Faroe Islands
 FR ,46.227638 ,2.213749 ,France
 GA ,-0.803689 ,11.609444 ,Gabon
-GB ,55.378051 ,-3.435973 ,United Kingdom
+UK,55.378051 ,-3.435973 ,United Kingdom
 GD ,12.262776 ,-61.604171 ,Grenada
 GE ,42.315407 ,43.356892 ,Georgia
 GF ,3.933889 ,-53.125782 ,French Guiana
@@ -84,7 +84,7 @@ GM ,13.443182 ,-15.310139 ,Gambia
 GN ,9.945587 ,-9.696645 ,Guinea
 GP ,16.995971 ,-62.067641 ,Guadeloupe
 GQ ,1.650801 ,10.267895 ,Equatorial Guinea
-GR ,39.074208 ,21.824312 ,Greece
+EL,39.074208 ,21.824312 ,Greece
 GS ,-54.429579 ,-36.587909 ,South Georgia and the South Sandwich Islands
 GT ,15.783471 ,-90.230759 ,Guatemala
 GU ,13.444304 ,144.793731 ,Guam
@@ -125,7 +125,7 @@ KZ ,48.019573 ,66.923684 ,Kazakhstan
 LA ,19.85627 ,102.495496 ,Laos
 LB ,33.854721 ,35.862285 ,Lebanon
 LC ,13.909444 ,-60.978893 ,Saint Lucia
-LI ,47.166 ,9.555373 ,Liechtenstein
+LI ,47.166, 9.555373 ,Liechtenstein
 LK ,7.873054 ,80.771797 ,Sri Lanka
 LR ,6.428055 ,-9.429499 ,Liberia
 LS ,-29.609988 ,28.233608 ,Lesotho
@@ -225,7 +225,7 @@ TW ,23.69781 ,120.960515 ,Taiwan
 TZ ,-6.369028 ,34.888822 ,Tanzania
 UA ,48.379433 ,31.16558 ,Ukraine
 UG ,1.373333 ,32.290275 ,Uganda
-UM ,,,U.S. Minor Outlying Islands
+UM ,0.18636 ,0.824782 ,U.S. Minor Outlying Islands
 US ,37.09024 ,-95.712891 ,United States
 UY ,-32.522779 ,-55.765835 ,Uruguay
 UZ ,41.377491 ,64.585262 ,Uzbekistan
@@ -244,3 +244,8 @@ YT ,-12.8275 ,45.166244 ,Mayotte
 ZA ,-30.559482 ,22.937506 ,South Africa
 ZM ,-13.133897 ,27.849332 ,Zambia
 ZW ,-19.015438 ,29.154857 ,Zimbabwe
+SX, 18.033333,-63.05,Sint Maarten
+SS, 4.85,31.6,South Sudan
+CW, 12.116667,-68.933,Curaçao
+BQ, 12.15, -68.266,"Bonaire, Saint Eustatius and Saba"
+JPG11668, 0, 0,Cases_on_an_international_conveyance_Japan

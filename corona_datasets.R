@@ -119,7 +119,8 @@ if(clean_long_names ){
 wc <- read_csv( "world-coords.csv", col_names = T)
 
 corona_world <- corona_world %>%  
-  left_join(wc)
+  left_join(wc, by = "geoId") %>%
+  mutate(countriesAndTerritories = countriesAndTerritories.x)
 rm(wc)
 rm(i, clean_long_names)
 
