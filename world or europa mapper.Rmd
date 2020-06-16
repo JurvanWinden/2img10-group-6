@@ -55,7 +55,7 @@ colnames(sumDeaths) <- c("countriesAndTerritories", "sumDeaths")
 infection_corona_world1 <- merge(infection_corona_world1, sumDeaths,by="countriesAndTerritories")
 #Filter on a day
 # infection_corona_world_Europe <- infection_corona_world_Europe1 %>% filter(day == '20', month == '4',)
-infection_corona_world <- infection_corona_world1 %>% filter(day == '1', month == '4',)
+infection_corona_world <- infection_corona_world1 %>% filter(day == '15', month == '4',)
 
 # infection_corona_world_Europe
 infection_corona_world
@@ -81,10 +81,19 @@ Define a filter metric
 # determine the ratio
 
 #begin world
+#option 1
+#  for (i in 1:length(infection_corona_world$deaths ) ) {
+#    infection_corona_world$ratio[i] <-
+#     if (infection_corona_world$deaths[i] > 0){
+#                                             round(infection_corona_world$popData2018[i] / infection_corona_world$deaths[i])
+#     }else {0}
+# }
+
+#option 2
  for (i in 1:length(infection_corona_world$deaths ) ) {
    infection_corona_world$ratio[i] <-
     if (infection_corona_world$deaths[i] > 0){
-                                            round(infection_corona_world$popData2018[i] / infection_corona_world$deaths[i])
+                                            round(infection_corona_world$cases[i] / infection_corona_world$deaths[i])
     }else {0}
 }
 #end world
@@ -104,6 +113,7 @@ Define a filter metric
   
 # infection_corona_world_Europe$ratio
 # infection_corona_world_Europe
+
 ```
 
 
@@ -122,8 +132,8 @@ Define the mapper
 #begin world mapper
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
                                 filter_values = infection_corona_world$ratio,
-                                num_intervals = 55,
-                                percent_overlap = 35,
+                                num_intervals = 10,
+                                percent_overlap = 80,
                                 num_bins_when_clustering = 15)
 #end world
 
@@ -144,7 +154,7 @@ for (i in 1:infection_corona_world_mapper$num_vertices){
   # value.mean.vertex[i] <-mean((infection_corona_world$deaths[points.in.vertex]))
   value.mean.vertex[i] <- round(mean((infection_corona_world$cases[points.in.vertex])))
 }
-value.mean.vertex
+# value.mean.vertex
 #end world
 
 #begin Europe
@@ -231,9 +241,9 @@ forceNetwork(Nodes = MapperNodes, Links = MapperLinks,
              Source = "Linksource", Target = "Linktarget",
              Value = "Linkvalue", NodeID = "Nodegroup",
              Group = "Nodename", opacity = 1, opacityNoHover = 1,
-             linkDistance = 25, charge = -10,
+             linkDistance = 35, charge = -10,
              Nodesize = "Nodesize", legend = T,
-             fontSize = 25)
+             fontSize = 15)
 ```
 
 
