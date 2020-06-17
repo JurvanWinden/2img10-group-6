@@ -25,6 +25,8 @@ https://www.volksgezondheidenzorg.info/onderwerp/bevolking/regionaal-internation
 # install.packages("factoextra")
 # install.packages("cluster")
 # install.packages("magrittr")
+install.packages("fpc")
+install.packages("dbscan")
 ```
 
 ```{r}
@@ -37,6 +39,8 @@ library(networkD3)
 library("cluster")
 library("factoextra")
 library("magrittr")
+library("fpc")
+library("dbscan")
 ```
 
 Get coordinate, infection data from NL municipalities. We read the infections as a list of dataframes, the coordinates are a separate dataframe.
@@ -108,7 +112,7 @@ for (inf in infections) {
 }
 
 # Show a merged dataframe
-print(merged[[1]])
+print(merged[[44]])
 
 ```
 
@@ -169,7 +173,7 @@ plot_mapper <- function (mapper) {
 # Grab some data
 first = merged[[1]]
 second = merged[[4]]
-third = merged[[10]]
+third = merged[[44]]
 
 firstMapper = create_tda_mapper(first$Aantal, first$Latitude, first$Longitude)
 plot_mapper(firstMapper)
@@ -188,7 +192,7 @@ A more advanced example using the networkD3 library which yields way nicer visua
 # library(networkD3)
 
 # Create a mapper object
-mapper = create_tda_mapper(first$Aantal, first$Inwoners.per.km2, first$Inwoners.per.km2, 20, 10, 50)
+mapper = create_tda_mapper(first$Aantal, first$Latitude, first$Longitude, 20, 10, 30)
 
 
 plotForceNetwork <- function(mapper, labels) {
@@ -260,9 +264,9 @@ Trying out custom clustering + filter values:
 Also see: https://www.datanovia.com/en/blog/types-of-clustering-methods-overview-and-quick-start-r-code/
 
 ```{r}
-first.subset <- subset(first, select = c(Aantal, Inwoners.per.km2))
+first.subset <- subset(first, select = c(Latitude, Longitude))
 second.subset <- subset(second, select = c(Aantal, Inwoners.per.km2))
-third.subset <- subset(third, select = c(Aantal, Inwoners.per.km2))
+third.subset <- subset(third, select = c(Aantal, Aantal.per.100.000.inwoners))
 
 # I assume here that the ordering is correct
 row.names(first.subset) <- first$Municipality
@@ -279,9 +283,9 @@ fviz_nbclust(second.subset, kmeans, method = "gap_stat")
 fviz_nbclust(third.subset, kmeans, method = "gap_stat")
 
 # Create clusters
-kmeans.first <- kmeans(first.subset, 8, nstart = 30)
+kmeans.first <- kmeans(first.subset, 8, nstart = 20)
 kmeans.second <- kmeans(second.subset, 8, nstart = 30)
-kmeans.third <- kmeans(third.subset, 8, nstart = 30)
+kmeans.third <- kmeans(third.subset, 10, nstart = 30)
 
 # Visualize
 fviz_cluster(kmeans.first, data = first.subset,
@@ -304,5 +308,25 @@ fviz_cluster(kmeans.third, data = third.subset,
 Define a custom filter function
 
 ```{r}
-print(kmeans.first)
+# print(kmeans.first)
+density(first$Aantal)
+print(density(first$Aantal))
+plot(density(first$Aantal),col="blueviolet")
+# print(kmeans.first$cluster)
+print(kmeans.first$centers)
+
+# Load the data 
+data("multishapes", package = "factoextra")
+df <- first.subset
+dbscan::kNNdistplot(df, k =  2)
+abline(h = 0.15, lty = 2)
+set.seed(444)
+db <- fpc::dbscan(df, eps = 0.15, MinPts = 3)
+fviz_cluster(db, data = df, stand = FALSE, ellipse = FALSE, geom = "point",palette = "jco", ggtheme = theme_classic())
+
+df <- third.subset
+dbscan::kNNdistplot(df, k =  2)
+abline(h = 30, lty = 2)
+db <- fpc::dbscan(df, eps = 30, MinPts = 3)
+fviz_cluster(db, data = df, stand = FALSE, ellipse = FALSE, geom = "point",palette = "jco", ggtheme = theme_classic())
 ```
