@@ -17,14 +17,14 @@ https://www.volksgezondheidenzorg.info/onderwerp/bevolking/regionaal-internation
 
 ```{r}
 # Package installs
-install.packages("TDAmapper")
-install.packages("ggplot2")
-install.packages("devtools")
-devtools::install_github("paultpearson/TDAmapper")
-devtools::install_github("christophergandrud/networkD3")
-install.packages("factoextra")
-install.packages("cluster")
-install.packages("magrittr")
+# ("TDAmapper")
+# install.packages("ggplot2")
+# install.packages("devtools")
+# devtools::install_github("paultpearson/TDAmapper")
+# devtools::install_github("christophergandrud/networkD3")
+# install.packages("factoextra")
+# install.packages("cluster")
+# install.packages("magrittr")
 ```
 
 ```{r}
@@ -216,27 +216,42 @@ More advanced force network which computes some other statistics on the nodes
 ```{r}
 mapper = create_tda_mapper(first$Aantal, first$Inwoners.per.km2, first$Inwoners.per.km2)
 
+MapperNodes <- mapperVertices(mapper, first$Aantal )
+MapperLinks <- mapperEdges(mapper)
+
+
+municipalities <- MapperNodes$Nodename
+
+# Map countries to label names
+for (i in (1: nrow(MapperNodes))){
+  temp <- paste("V",i, ":", sep= "")
+  split <- strsplit(MapperNodes$Nodename[i], " ")
+  for (j in (2 : (length(split[[1]])) ) ) {
+    mun <-  first$Municipality[as.integer(gsub(",","",split[[1]][j]))]
+    temp <- paste(temp, mun)
+  }
+  municipalities[i] <- paste(temp, sep = ", ")
+}
+for (i in (1: nrow(MapperNodes))){
+  MapperNodes$Nodegroup[i] <- i
+}
+
+# Compute mean
 vertex.mean = c()
 mapper$points_in_level_set
 for (i in 1:length(mapper$points_in_vertex)){
   vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
 }
 
-#vertex.size <- rep(0,length(mapper$points_in_vertex))
-#for (i in 1:length(mapper$points_in_vertex)){
-#  points.in.vertex <- mapper$points_in_vertex[[i]]
-#  vertex.size[i] <- length((mapper$points_in_vertex[[i]]))
-#}
 
-MapperNodes <- mapperVertices(mapper, first$Aantal )
 MapperNodes$Nodesize <- vertex.mean
-print(vertex.mean)
-MapperLinks <- mapperEdges(mapper)
+MapperNodes$Nodename <- municipalities
+
 
 forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
             Source = "Linksource", Target = "Linktarget",
             Value = "Linkvalue", NodeID = "Nodename",
-            Group = "Nodegroup", opacity = 1, 
+            Group = "Nodename", opacity = 1, opacityNoHover = 1,
             linkDistance = 100, charge = -20,legend = TRUE,
             Nodesize = "Nodesize")  
 ```
@@ -263,10 +278,11 @@ fviz_nbclust(first.subset, kmeans, method = "gap_stat")
 fviz_nbclust(second.subset, kmeans, method = "gap_stat")
 fviz_nbclust(third.subset, kmeans, method = "gap_stat")
 
-
+# Create clusters
 kmeans.first <- kmeans(first.subset, 8, nstart = 30)
 kmeans.second <- kmeans(second.subset, 8, nstart = 30)
 kmeans.third <- kmeans(third.subset, 8, nstart = 30)
+
 # Visualize
 fviz_cluster(kmeans.first, data = first.subset,
              ellipse.type = "convex",
@@ -283,4 +299,10 @@ fviz_cluster(kmeans.third, data = third.subset,
              palette = "jco",
              ggtheme = theme_minimal())
 
+```
+
+Define a custom filter function
+
+```{r}
+print(kmeans.first)
 ```
