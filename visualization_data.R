@@ -5,6 +5,12 @@ mun <- NL_municipality_coordinates$Municipality
 lon <- NL_municipality_coordinates$Longitude
 lat <- NL_municipality_coordinates$Latitude
 
+m <- mapproject(lon,lat)
+K <- data.frame(m,Corona_NL_Infections_municipality[1:355,1:35])
+names(K)<-c("X","Y",names(Corona_NL_Infections_municipality))
+K2 <-K[c(1:355),c(1:2,22)]
+K2[is.na(K2)]=0
+
 LatLong <- data.frame(X = lat, Y = lon, Municipality=mun)
 #add data to dataframe where muncipalities are equal
 LatLong$Infections <- Corona_NL_Infections_municipality$`2020-03-30`[1:355] 
