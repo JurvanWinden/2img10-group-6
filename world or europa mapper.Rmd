@@ -154,27 +154,35 @@ Define the mapper
 #                                 num_bins_when_clustering = 15)
 #end Europa
 
+determineDist = data.frame(infection_corona_world$casesRatio, infection_corona_world$deathRatio)
+infection_corona_world_dist = dist(determineDist)
 
 #begin world mapper
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
-                                filter_values = infection_corona_world$sumDeaths,
-                                num_intervals = 20,
-                                percent_overlap = 80,
-                                num_bins_when_clustering = 30)
+                                filter_values = infection_corona_world$Latitude,
+                                num_intervals = 7,
+                                percent_overlap = 25,
+                                num_bins_when_clustering = 5)
 
-# 2d version
-infection_corona_world_mapper2d <- mapper(dist_object = infection_corona_world_dist,
-                                filter_values = list(infection_corona_world$deathRatio, infection_corona_world$casesRatio),
-                                num_intervals = c(5,5),
-                                percent_overlap = 75,
-                                num_bins_when_clustering = 50)
-#end world
+# infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
+#                                 filter_values = infection_corona_world$Latitude,
+#                                 num_intervals = 20,
+#                                 percent_overlap = 80,
+#                                 num_bins_when_clustering = 10)
+
+# # 2d version
+# infection_corona_world_mapper2d <- mapper(dist_object = infection_corona_world_dist,
+#                                 filter_values = list(infection_corona_world$deathRatio, infection_corona_world$casesRatio),
+#                                 num_intervals = c(5,5),
+#                                 percent_overlap = 75,
+#                                 num_bins_when_clustering = 50)
+# #end world
 
 # show the mapper
 infection_corona_world_graph <- graph.adjacency(infection_corona_world_mapper$adjacency, mode="undirected")
 plot(infection_corona_world_graph, layout = layout.auto(infection_corona_world_graph) )
-infection_corona_world_graph2 <- graph.adjacency(infection_corona_world_mapper2d$adjacency, mode="undirected")
-plot(infection_corona_world_graph2, layout = layout.auto(infection_corona_world_graph) )
+# infection_corona_world_graph2 <- graph.adjacency(infection_corona_world_mapper2d$adjacency, mode="undirected")
+# plot(infection_corona_world_graph2, layout = layout.auto(infection_corona_world_graph) )
 ```
 
 
@@ -183,13 +191,14 @@ Determine values for vertex color and size
 ```{r}
 # determine the mean values of the number of infections
 #begin world
-value.mean.vertex <- rep(0,infection_corona_world_mapper2d$num_vertices)
-for (i in 1:infection_corona_world_mapper2d$num_vertices){
-  points.in.vertex <- infection_corona_world_mapper2d$points_in_vertex[[i]]
+value.mean.vertex <- rep(0,infection_corona_world_mapper$num_vertices)
+for (i in 1:infection_corona_world_mapper$num_vertices){
+  points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
   # value.mean.vertex[i] <-mean((infection_corona_world$deaths[points.in.vertex]))
-  value.mean.vertex[i] <- round(mean((infection_corona_world$cases[points.in.vertex])))
+  value.mean.vertex[i] <- round(mean((infection_corona_world$deaths[points.in.vertex])))
 }
-# value.mean.vertex
+value.mean.vertex
+print("---------------------")
 #end world
 
 #begin Europe
@@ -204,10 +213,10 @@ for (i in 1:infection_corona_world_mapper2d$num_vertices){
 
 
 #set vertex size based on how many cities are represented by this vertex
-vertex.size <- rep(0,infection_corona_world_mapper2d$num_vertices)
-for (i in 1:infection_corona_world_mapper2d$num_vertices){
-  points.in.vertex <- infection_corona_world_mapper2d$points_in_vertex[[i]]
-  vertex.size[i] <- length((infection_corona_world_mapper2d$points_in_vertex[[i]]))
+vertex.size <- rep(0,infection_corona_world_mapper$num_vertices)
+for (i in 1:infection_corona_world_mapper$num_vertices){
+  points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
+  vertex.size[i] <- length((infection_corona_world_mapper$points_in_vertex[[i]]))
 }
 vertex.size
 ```
@@ -216,9 +225,9 @@ Plot the mapper
 ```{r}
 # Mapper graph with the vertices colored in function of latitude data and vertex size proportional to the number of points inside
 value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
-V(infection_corona_world_graph2)$color <- value.mean.vertex.grey
-V(infection_corona_world_graph2)$size <- vertex.size
-plot(infection_corona_world_graph2,main ="Mapper Graph")
+V(infection_corona_world_graph)$color <- value.mean.vertex.grey
+V(infection_corona_world_graph)$size <- vertex.size
+plot(infection_corona_world_graph,main ="Mapper Graph")
 legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
        col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
 
@@ -229,8 +238,8 @@ Plot a mapper with nicer looks
 
 ```{r}
 library(networkD3)
-MapperNodes <- mapperVertices(infection_corona_world_mapper2d, 1:1000 )
-MapperLinks <- mapperEdges(infection_corona_world_mapper2d)
+MapperNodes <- mapperVertices(infection_corona_world_mapper, 1:1000 )
+MapperLinks <- mapperEdges(infection_corona_world_mapper)
 
 # create legend with the corresponding country names in stead of row numbers
 countries <- MapperNodes$Nodename
