@@ -1,5 +1,7 @@
 # https://data.world/liz-friedman/covid-19-in-germany/workspace/file?filename=cases-rki-by-state.csv
 # https://en.wikipedia.org/wiki/ISO_3166-2:DE
+
+germanyLatLong <- read_csv("./data/duitsland-latlong.csv") 
 germany <- read_csv("./data/duitsland.csv") %>%
   rename(
     date = `time_iso8601`,
@@ -23,5 +25,5 @@ germany <- read_csv("./data/duitsland.csv") %>%
     ) %>%
   pivot_longer(-c(date, SumCases ), names_to = "Provinces", values_to = "Cases") %>%
   select(-c("SumCases")) %>%
+  left_join(germanyLatLong) %>%
   pivot_wider(names_from = date, values_from = Cases )
-  
