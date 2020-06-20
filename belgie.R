@@ -18,6 +18,8 @@ df <- df %>%
           Municipality = TX_ADM_DSTR_DESCR_NL )  %>%  
   pivot_wider(names_from = dateRep, values_from = Cases) #%>%
   
+# Replace NA's with most recent values
+df <- na.locf(df)  
 
 belgie <- df
 rm(df)
