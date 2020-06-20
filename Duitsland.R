@@ -22,4 +22,6 @@ germany <- read_csv("./data/duitsland.csv") %>%
     SumCases = sum_cases
     ) %>%
   pivot_longer(-c(date, SumCases ), names_to = "Provinces", values_to = "Cases") %>%
-  select(-c("SumCases"))
+  select(-c("SumCases")) %>%
+  pivot_wider(names_from = date, values_from = Cases )
+  
