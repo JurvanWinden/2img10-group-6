@@ -1,6 +1,6 @@
 
 #Read the corona world dataset from csv file
-corona_world <- read.csv("./corona_world")
+corona_world <- read.csv("./data/corona_world")
 
 #read corona NL infection per municipality data over time
 Corona_NL_Infections_municipality <- read_excel("COVIDNL.xlsx", sheet = "Infections", na = "0", n_max = 357, range = "A1:AI357")

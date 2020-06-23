@@ -1,0 +1,7 @@
+infection_corona_world_p1 <- infection_corona_world1 %>% filter(day == '15', month == '4')
+infection_corona_world_p2 <- infection_corona_world1 %>% filter(day == '16', month == '4')
+infection_corona_world_p3 <- infection_corona_world1 %>% filter(day == '17', month == '4')
+infection_corona_world_p4 <- infection_corona_world1 %>% filter(day == '18', month == '4')
+infection_corona_world_p5 <- infection_corona_world1 %>% filter(day == '19', month == '4')
+infection_corona_world_p6 <- infection_corona_world1 %>% filter(day == '20', month == '4')
+infection_corona_world_p7 <- infection_corona_world1 %>% filter(day == '21', month == '4')
