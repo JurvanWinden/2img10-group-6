@@ -25,8 +25,8 @@ https://www.volksgezondheidenzorg.info/onderwerp/bevolking/regionaal-internation
 # install.packages("factoextra")
 # install.packages("cluster")
 # install.packages("magrittr")
-install.packages("fpc")
-install.packages("dbscan")
+# install.packages("fpc")
+# install.packages("dbscan")
 ```
 
 ```{r}

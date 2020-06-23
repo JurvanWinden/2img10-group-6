@@ -18,7 +18,7 @@ The preview shows you a rendered HTML copy of the contents of the editor. Conseq
 
 # wd = getwd()
 # setwd(wd)
-setwd('C:/Users/s153944/Documents/uni jaar 5/2IMG10 Topological data analysis/groupproject/2img10-group-6')
+# setwd('C:/Users/s153944/Documents/uni jaar 5/2IMG10 Topological data analysis/groupproject/2img10-group-6')
 
 # get needed packages and import data
 source("bootstrap.R")
