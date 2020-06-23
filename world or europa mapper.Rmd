@@ -45,23 +45,45 @@ Preprocces the world data
 ```{r}
 # delete all rows where an NA occurs
 infection_corona_world1 <- na.omit(corona_world)
-
+# infection_corona_world1
 #only take data of Europe
 # infection_corona_world_Europe1 <- infection_corona_world1 %>% filter(continentExp == 'Europe')
 
 #Get the number of deaths over complete time by country
 # sumDeaths <- aggregate(infection_corona_world_Europe1$cases, by=list(Category=infection_corona_world_Europe1$countriesAndTerritories), FUN=sum)
-sumDeaths <- aggregate(infection_corona_world1$cases, by=list(Category=infection_corona_world1$countriesAndTerritories), FUN=sum)
-colnames(sumDeaths) <- c("countriesAndTerritories", "sumDeaths")
+# sumDeaths <- aggregate(infection_corona_world1$cases, by=list(Category=infection_corona_world1$countriesAndTerritories), FUN=sum)
+# colnames(sumDeaths) <- c("countriesAndTerritories", "sumDeaths")
 
 # infection_corona_world_Europe1 <- merge(infection_corona_world_Europe1, sumDeaths,by="countriesAndTerritories")
-infection_corona_world1 <- merge(infection_corona_world1, sumDeaths,by="countriesAndTerritories")
+# infection_corona_world1 <- merge(infection_corona_world1, sumDeaths,by="countriesAndTerritories")
 #Filter on a day
 # infection_corona_world_Europe <- infection_corona_world_Europe1 %>% filter(day == '20', month == '4',)
-infection_corona_world <- infection_corona_world1 %>% filter(day == '15', month == '4',)
+infection_corona_world_p1 <- infection_corona_world1 %>% filter(day == '2', month == '2')
+infection_corona_world_p2 <- infection_corona_world1 %>% filter(day == '3', month == '2')
+infection_corona_world_p3 <- infection_corona_world1 %>% filter(day == '4', month == '2')
+infection_corona_world_p4 <- infection_corona_world1 %>% filter(day == '5', month == '2')
+infection_corona_world_p5 <- infection_corona_world1 %>% filter(day == '6', month == '2')
+infection_corona_world_p6 <- infection_corona_world1 %>% filter(day == '7', month == '2')
+infection_corona_world_p7 <- infection_corona_world1 %>% filter(day == '8', month == '2')
+infection_corona_world <- rbind(infection_corona_world_p1, infection_corona_world_p2, infection_corona_world_p3, infection_corona_world_p5,infection_corona_world_p6, infection_corona_world_p7, infection_corona_world_p4 )
+
+# get sum of deaths and sum of cases over the selected timespan
+sumDeaths <- aggregate(infection_corona_world$deaths, by=list(Category=infection_corona_world$countriesAndTerritories), FUN=sum)
+colnames(sumDeaths) <- c("countriesAndTerritories", "sumDeaths")
+infection_corona_world <- merge(infection_corona_world, sumDeaths,by="countriesAndTerritories")
+sumCases <- aggregate(infection_corona_world$cases, by=list(Category=infection_corona_world$countriesAndTerritories), FUN=sum)
+colnames(sumCases) <- c("countriesAndTerritories", "sumCases")
+infection_corona_world <- merge(infection_corona_world, sumCases,by="countriesAndTerritories")
+
+#Only want to be left with one row per country
+infection_corona_world <- infection_corona_world %>% filter(day == '8', month == '2')
+
+drop <- c("dateRep","day", "month", "year", "cases", "deaths")
+infection_corona_world = infection_corona_world[,!(names(infection_corona_world) %in% drop)]
 
 # infection_corona_world_Europe
 infection_corona_world
+
 ```
 
 
@@ -69,7 +91,7 @@ Define a distance value
 ```{r}
 # determine the manhattan distance (Absolute distance between the two vectors) on the Europe data
 #begin world
-infection_corona_world_dist = dist(infection_corona_world[,13:14]) #, method = "manhattan"
+infection_corona_world_dist = dist(infection_corona_world[,7:8]) #, method = "manhattan"
 #end world
 
 
@@ -93,29 +115,29 @@ Define a filter metric
 # }
 
 #option 2
- for (i in 1:length(infection_corona_world$deaths ) ) {
-   infection_corona_world$ratio[i] <-
-    if (infection_corona_world$deaths[i] > 0){
-      
-      round(infection_corona_world$cases[i] / infection_corona_world$deaths[i])
-      
-    } else {0}
- }
+ # for (i in 1:length(infection_corona_world$deaths ) ) {
+ #   infection_corona_world$ratio[i] <-
+ #    if (infection_corona_world$deaths[i] > 0){
+ #      
+ #      round(infection_corona_world$cases[i] / infection_corona_world$deaths[i])
+ #      
+ #    } else {0}
+ # }
 
- for (i in 1:length(infection_corona_world$deaths ) ) {
+ for (i in 1:length(infection_corona_world$sumDeaths ) ) {
    infection_corona_world$deathRatio[i] <-
-    if (infection_corona_world$deaths[i] > 0){
+    if (infection_corona_world$sumDeaths[i] > 0){
       
-      round(infection_corona_world$popData2018[i] / infection_corona_world$deaths[i])
+      round(infection_corona_world$popData2018[i] / infection_corona_world$sumDeaths[i])
       
     } else {0}
  }
 
- for (i in 1:length(infection_corona_world$deaths ) ) {
+ for (i in 1:length(infection_corona_world$sumDeaths ) ) {
    infection_corona_world$casesRatio[i] <-
-    if (infection_corona_world$cases[i] > 0){
+    if (infection_corona_world$sumCases[i] > 0){
       
-      round(infection_corona_world$popData2018[i] / infection_corona_world$cases[i])
+      round(infection_corona_world$popData2018[i] / infection_corona_world$sumCases[i])
       
     } else {0}
 }
@@ -136,7 +158,7 @@ Define a filter metric
   
 # infection_corona_world_Europe$ratio
 # infection_corona_world_Europe
-infection_corona_world$ratio
+# infection_corona_world$ratio
 
 # infection_corona_world$casesRatio
 # infection_corona_world$deathRatio
@@ -159,7 +181,7 @@ infection_corona_world_dist = dist(determineDist)
 
 #begin world mapper
 infection_corona_world_mapper <- mapper(dist_object = infection_corona_world_dist,
-                                filter_values = infection_corona_world$Latitude,
+                                filter_values = infection_corona_world$Longitude,
                                 num_intervals = 7,
                                 percent_overlap = 25,
                                 num_bins_when_clustering = 5)
@@ -195,7 +217,7 @@ value.mean.vertex <- rep(0,infection_corona_world_mapper$num_vertices)
 for (i in 1:infection_corona_world_mapper$num_vertices){
   points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
   # value.mean.vertex[i] <-mean((infection_corona_world$deaths[points.in.vertex]))
-  value.mean.vertex[i] <- round(mean((infection_corona_world$deaths[points.in.vertex])))
+  value.mean.vertex[i] <- round(mean((infection_corona_world$sumDeaths[points.in.vertex])))
 }
 value.mean.vertex
 print("---------------------")
@@ -213,10 +235,17 @@ print("---------------------")
 
 
 #set vertex size based on how many cities are represented by this vertex
+# vertex.size <- rep(0,infection_corona_world_mapper$num_vertices)
+# for (i in 1:infection_corona_world_mapper$num_vertices){
+#   points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
+#   vertex.size[i] <- length((infection_corona_world_mapper$points_in_vertex[[i]]))
+# }
+
+# set size of vertex based on mean number of cases
 vertex.size <- rep(0,infection_corona_world_mapper$num_vertices)
 for (i in 1:infection_corona_world_mapper$num_vertices){
   points.in.vertex <- infection_corona_world_mapper$points_in_vertex[[i]]
-  vertex.size[i] <- length((infection_corona_world_mapper$points_in_vertex[[i]]))
+  vertex.size[i] <- round(mean((infection_corona_world$sumCases[points.in.vertex])))
 }
 vertex.size
 ```
@@ -224,12 +253,13 @@ vertex.size
 Plot the mapper
 ```{r}
 # Mapper graph with the vertices colored in function of latitude data and vertex size proportional to the number of points inside
-value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
-V(infection_corona_world_graph)$color <- value.mean.vertex.grey
-V(infection_corona_world_graph)$size <- vertex.size
-plot(infection_corona_world_graph,main ="Mapper Graph")
-legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
-       col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
+# value.mean.vertex.grey <- grey(1-(value.mean.vertex - min(value.mean.vertex))/(max(value.mean.vertex) - min(value.mean.vertex) ))
+# V(infection_corona_world_graph)$color <- value.mean.vertex.grey
+# V(infection_corona_world_graph)$size <- vertex.size
+# plot(infection_corona_world_graph,main ="Mapper Graph")
+# legend(x=-2, y=-1, c("mean number small","mean number medium","mean number large"),pch=21,
+#        col="#777777", pt.bg=grey(c(1,0.5,0)), pt.cex=2, cex=.8, bty="n", ncol=1)
+# 
 
 ```
 
@@ -246,14 +276,18 @@ countries <- MapperNodes$Nodename
 
 #begin world
 for (i in (1: nrow(MapperNodes))){
-  temp <- paste("V",i, ":", sep= "")
+  temp <- paste(i, ":", sep= "")
+  meanDeaths <- round(value.mean.vertex[i])
+  meanCases <- round(vertex.size[i])
+  temp <- paste(temp, meanDeaths, sep = " ")
+  temp <- paste(temp, meanCases, sep = ", ")
   split <- strsplit(MapperNodes$Nodename[i], " ")
   for (j in (2 : (length(split[[1]])) ) ) {
-    country <-  infection_corona_world$countriesAndTerritories[as.integer(gsub(",","",split[[1]][j]))]
+    country <-  infection_corona_world$countryterritoryCode[as.integer(gsub(",","",split[[1]][j]))]
     temp <- paste(temp, country)
   }
-  meanCases <- round(value.mean.vertex[i])
-  countries[i] <- paste(temp, meanCases, sep = ", ")
+  
+  countries[i] <- temp
 }
 #end world
 
@@ -283,7 +317,7 @@ for (i in (1: nrow(MapperNodes))){
 forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
              Source = "Linksource", Target = "Linktarget",
              Value = "Linkvalue", NodeID = "Nodegroup",
-             Group = "Nodename", opacity = 1, opacityNoHover = 1,
+             Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
              linkDistance = 35, charge = -10,
              Nodesize = "Nodesize", legend = T,
              fontSize = 15)
