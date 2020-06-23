@@ -5,30 +5,31 @@
 
 # Read stuff & Install stuff --------------
 requiredPackages <- c( 
-    "tidyverse", 
-    "readxl",
-    "janitor",
-    "TDA",
-    "gridGraphics",
-    "rgdal", 
-    "maps",
-    "sp",
-    "TDAmapper",   # mapper package
-    "igraph",      # graph package for TDAmapper.
-    "fastcluster",  # clustering, masks stat::hclust()
-    "zoo" # for Duitsland.R
+  "tidyverse", 
+  "readxl",
+  "janitor",
+  "TDA",
+  "gridGraphics",
+  "rgdal", 
+  "maps",
+  "sp",
+  "TDAmapper",   # mapper package
+  "igraph",      # graph package for TDAmapper.
+  "fastcluster",  # clustering, masks stat::hclust()
+  "zoo" ,# for Duitsland.R
+  "networkD3"
 )
 
 for( i in requiredPackages ){
-   
-    if (!require(i , character.only = T )) {
-        install.packages(i)
-    }
-    if ( !( i %in% (.packages() ) ) ) {
-        print("loading package:")
-        print(i)
-        library(i , character.only = T)
-    } 
+  
+  if (!require(i , character.only = T )) {
+    install.packages(i)
+  }
+  if ( !( i %in% (.packages() ) ) ) {
+    print("loading package:")
+    print(i)
+    library(i , character.only = T)
+  } 
 }
 rm(i, requiredPackages )
 
@@ -40,3 +41,5 @@ theme_set(theme_linedraw()) # ggplot theme
 # run the load dataset file.  -------------
 clean_long_names <- T 
 source('corona_datasets.R')
+source('belgie.R')
+source('Duitsland.R')
