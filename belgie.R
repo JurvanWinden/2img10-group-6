@@ -11,19 +11,22 @@ df <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
           Taal = TX_RGN_DESCR_NL, 
           Cases = CASES,
           Municipality = TX_ADM_DSTR_DESCR_NL ) %>%
-  left_join(df, zipp)
+  left_join( zipp)
 
 problems(df)
 # wrangling
 df$Cases[which(df$Cases == "<5")] = 0
 df$Cases <- parse_integer(df$Cases)
 
+# Replace NA's with most recent values
+df$Cases <- as.integer(na.locf(df$Cases) )
+
+belgie_long <- df
 # set to match the world data set or NL Data Set
 df <- df %>%
   pivot_wider(names_from = dateRep, values_from = Cases) #%>%
-  
-# Replace NA's with most recent values
-df <- na.locf(df)  
+df <- na.locf(df)
+
 
 belgie <- df
-rm(df)
+rm(df,zipp)

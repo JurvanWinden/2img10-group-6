@@ -4,7 +4,7 @@
 germanyLatLong <- read_csv("./data/duitsland-latlong.csv") 
 germany <- read_csv("./data/duitsland.csv") %>%
   rename(
-    date = `time_iso8601`,
+    dateRep = `time_iso8601`,
     `Schleswig-Holstein` = de_sh  ,
     `Hamburg` = de_hh  ,
     `Niedersachsen` = de_ni  ,
@@ -23,7 +23,11 @@ germany <- read_csv("./data/duitsland.csv") %>%
     `Berlin` = de_be  ,
     SumCases = sum_cases
     ) %>%
-  pivot_longer(-c(date, SumCases ), names_to = "Provinces", values_to = "Cases") %>%
+  pivot_longer(-c(dateRep, SumCases ), names_to = "Provinces", values_to = "Cases") %>%
   select(-c("SumCases")) %>%
-  left_join(germanyLatLong) %>%
-  pivot_wider(names_from = date, values_from = Cases )
+  left_join(germanyLatLong) 
+germany_long <- germany
+germany <- germany %>%
+  pivot_wider(names_from = dateRep, values_from = Cases )
+
+rm(germanyLatLong)

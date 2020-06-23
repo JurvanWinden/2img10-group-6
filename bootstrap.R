@@ -5,19 +5,19 @@
 
 # Read stuff & Install stuff --------------
 requiredPackages <- c( 
-  "tidyverse", 
-  "readxl",
-  "janitor",
-  "TDA",
-  "gridGraphics",
-  "rgdal", 
-  "maps",
-  "sp",
-  "TDAmapper",   # mapper package
-  "igraph",      # graph package for TDAmapper.
-  "fastcluster",  # clustering, masks stat::hclust()
-  "zoo" ,# for Duitsland.R
-  "networkD3"
+    "tidyverse", 
+    "readxl",
+    "janitor",
+    "TDA",
+    "gridGraphics",
+    "rgdal", 
+    "maps",
+    "sp",
+    "TDAmapper",   # mapper package
+    "igraph",      # graph package for TDAmapper.
+    "fastcluster",  # clustering, masks stat::hclust()
+    "zoo" ,# for Duitsland.R
+    "networkD3"
 )
 
 for( i in requiredPackages ){
