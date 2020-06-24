@@ -20,6 +20,29 @@ git pull
 ```
 And there is much rejoicing. 
 
+
+
+This should work in theory, however it just kills my pc.  
+```{r}
+long <- belgie_long$Longitude[!is.na(belgie_long$Longitude)]
+lat <- belgie_long$Latitude[!is.na(belgie_long$Latitude)]
+city <- belgie_long$City[!is.na(belgie_long$City )]
+cases <- belgie_long$Cases[!is.na(belgie_long$Cases)]
+cases <- belgie$`2020-05-02`
+print(cases)
+
+
+distmatrix <- dist(data.frame(long , lat ) ) 
+filterValues <- cases
+nodelabels <- city
+
+plotForceFromDist(distmatrix, filterValues, nodelabels)
+
+```
+
+
+
+#### from here is the failed attempt at building the mapper from the three countries together. 
 # dataset maken
 ```{r}
 belgie <- belgie_long %>%
@@ -126,22 +149,4 @@ distmatrix <- dist(data.frame(baal_wider$Latitude, baal_wider$Longitude))
 ```
 
 ```{r}
-#distmatrix <- dist(data.frame(baal$Longitude, sumBaal$Cases))
-filterValues <- sumBaal$Cases
-filterValues <- baal$`2020-04-20`
-#nodelabel <- baal$City 
-#####
-  mapperThing <- mapper(dist_object = distmatrix,
-                        filter_values = filterValues,
-                        num_intervals = 7,
-                        percent_overlap = 25,
-                        num_bins_when_clustering = 5)
-  MapperNodes <- mapperVertices(mapperThing, nodelabel )
-  MapperLinks <- mapperEdges(mapperThing)
-  forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
-               Source = "Linksource", Target = "Linktarget",
-               Value = "Linkvalue", NodeID = "Nodename",
-               Group = "Nodename", opacity = 1, opacityNoHover = 1,
-               linkDistance = 100, charge = -20,legend = TRUE,
-               Nodesize = "Nodesize")  
 ```
