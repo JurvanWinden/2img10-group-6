@@ -43,3 +43,4 @@ clean_long_names <- T
 source('corona_datasets.R')
 source('belgie.R')
 source('Duitsland.R')
+source('functions.R')
