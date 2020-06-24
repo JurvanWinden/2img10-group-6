@@ -100,22 +100,36 @@ for(i in 1:7 ){
   temp <- baal_wider %>% filter(dateRep == start + i )
   TotalWeeklyCases <- rbind(TotalWeeklyCases, temp)
 }
+dfLatlong <- baal_wider %>%
+  select( Country, City, Longitude, Latitude) %>%
+  unique()
+print(dfLatlong)
+
 
 sumBaal <- aggregate(
     TotalWeeklyCases$Cases
   , by= list(Category=TotalWeeklyCases$City )
   , FUN=sum
 ) %>%
-  rename(City = Category) %>%
-  right_join(baal_wider)
+  rename(City = Category, Cases = x) %>%
+  right_join(dfLatlong) 
+
 #sumBaal$Category <- as_factor(sumBaal$Category)
 #sumBaal$C <- as.integer(sumBaal$Category)
 print(sumBaal)
 
+
 #####
 distmatrix <- dist(data.frame(baal_wider$Latitude, baal_wider$Longitude))
-filterValues <- sumBaal$x
-nodelabel <- sumBaal$Category
+#filterValues <- baal_wider$Latitude
+#nodelabel <- sumBaal$Category
+```
+
+```{r}
+#distmatrix <- dist(data.frame(baal$Longitude, sumBaal$Cases))
+filterValues <- sumBaal$Cases
+filterValues <- baal$`2020-04-20`
+#nodelabel <- baal$City 
 #####
   mapperThing <- mapper(dist_object = distmatrix,
                         filter_values = filterValues,
