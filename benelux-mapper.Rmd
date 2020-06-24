@@ -1,0 +1,133 @@
+
+# Loading...
+```{r}
+switch(Sys.info()[4]
+       , Bakbeestje = setwd("~/Nextcloud/TUE/Current/2IMG10 - Topological Data Analysis/2img10-group-6")
+       )
+
+source("bootstrap.R")
+
+
+```
+Oeh, would this work?
+```{zsh}
+/usr/bin/echo "hellow"
+```
+
+Yes, yes it does. so Can I update the local repo from this?
+```{zsh}
+git pull 
+```
+And there is much rejoicing. 
+
+# dataset maken
+```{r}
+belgie <- belgie_long %>%
+  mutate(Country = "Belgium")
+duitsland <- germany_long %>%
+  mutate(Country = "Germany")
+nederland <- infection_city %>%
+  rename(dateRep = date, Cases = value) %>%
+  mutate(Country = "Netherland") 
+
+bal <- left_join(belgie, duitsland) %>%
+  left_join(nederland) %>%
+  mutate(dateRep = as_date(dateRep) ) 
+baal_wider <- bal
+bal <- bal %>%
+  pivot_wider( names_from = dateRep, values_from = Cases) 
+
+
+baal <-bal
+for( i in 10:length(baal) ) {
+  baal[i,] <- na.locf(baal[i,], na.rm = F)
+}
+baal <- baal %>%
+  mutate( 
+    across(everything() , ~replace_na(.x , 0))
+  )
+```
+#Example of how it works. 
+```{r}
+distmatrix <- dist(data.frame(baal$Longitude, baal$Latitude))
+filterValues <- baal$Longitude
+nodelabel <- baal$City 
+
+mapperThing <- mapper(dist_object = distmatrix,
+                                filter_values = baal$Longitude,
+                                num_intervals = 7,
+                                percent_overlap = 25,
+                                num_bins_when_clustering = 5)
+
+
+
+
+
+
+MapperNodes <- mapperVertices(mapperThing, nodelabel )
+MapperLinks <- mapperEdges(mapperThing)
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+             Source = "Linksource", Target = "Linktarget",
+             Value = "Linkvalue", NodeID = "Nodename",
+             Group = "Nodename", opacity = 1, opacityNoHover = 1,
+             linkDistance = 100, charge = -20,legend = TRUE,
+             Nodesize = "Nodesize")  
+```
+# Things to change: dist, filter_values, nodelabel
+```{r}
+
+#####
+distmatrix <- dist(data.frame(baal$Longitude, baal$Latitude))
+filterValues <- baal$Longitude
+nodelabel <- baal$City 
+#####
+plotForceFromDist(distmatrix, filterValues, nodelabel)
+
+```
+
+```{r}
+print(baal_wider)
+```
+sumDeaths <- aggregate(infection_corona_world$deaths, by=list(Category=infection_corona_world$countriesAndTerritories), FUN=sum)
+
+```{r}
+print(baal_wider$dateRep[30])
+start <- as.numeric(baal_wider$dateRep[30])
+print(start)
+TotalWeeklyCases <- baal_wider %>% filter(dateRep == start)
+for(i in 1:7 ){
+  temp <- baal_wider %>% filter(dateRep == start + i )
+  TotalWeeklyCases <- rbind(TotalWeeklyCases, temp)
+}
+
+sumBaal <- aggregate(
+    TotalWeeklyCases$Cases
+  , by= list(Category=TotalWeeklyCases$City )
+  , FUN=sum
+) %>%
+  rename(City = Category) %>%
+  right_join(baal_wider)
+#sumBaal$Category <- as_factor(sumBaal$Category)
+#sumBaal$C <- as.integer(sumBaal$Category)
+print(sumBaal)
+
+#####
+distmatrix <- dist(data.frame(baal_wider$Latitude, baal_wider$Longitude))
+filterValues <- sumBaal$x
+nodelabel <- sumBaal$Category
+#####
+  mapperThing <- mapper(dist_object = distmatrix,
+                        filter_values = filterValues,
+                        num_intervals = 7,
+                        percent_overlap = 25,
+                        num_bins_when_clustering = 5)
+  MapperNodes <- mapperVertices(mapperThing, nodelabel )
+  MapperLinks <- mapperEdges(mapperThing)
+  forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+               Source = "Linksource", Target = "Linktarget",
+               Value = "Linkvalue", NodeID = "Nodename",
+               Group = "Nodename", opacity = 1, opacityNoHover = 1,
+               linkDistance = 100, charge = -20,legend = TRUE,
+               Nodesize = "Nodesize")  
+```

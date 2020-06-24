@@ -54,3 +54,21 @@ plotForceNetwork <- function(mapper, labels) {
     Nodesize = "Nodesize", legend = T
   ) 
 }
+
+
+
+plotForceFromDist <- function(distmatrix, filterValues, nodelabel){
+  mapperThing <- mapper(dist_object = distmatrix,
+                        filter_values = filterValues,
+                        num_intervals = 7,
+                        percent_overlap = 25,
+                        num_bins_when_clustering = 5)
+  MapperNodes <- mapperVertices(mapperThing, nodelabel )
+  MapperLinks <- mapperEdges(mapperThing)
+  forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+               Source = "Linksource", Target = "Linktarget",
+               Value = "Linkvalue", NodeID = "Nodename",
+               Group = "Nodename", opacity = 1, opacityNoHover = 1,
+               linkDistance = 100, charge = -20,legend = TRUE,
+               Nodesize = "Nodesize")  
+}

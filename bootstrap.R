@@ -17,7 +17,8 @@ requiredPackages <- c(
     "igraph",      # graph package for TDAmapper.
     "fastcluster",  # clustering, masks stat::hclust()
     "zoo" ,# for Duitsland.R
-    "networkD3"
+    "networkD3", 
+    "lubridate"
 )
 
 for( i in requiredPackages ){

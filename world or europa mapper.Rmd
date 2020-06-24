@@ -66,6 +66,7 @@ infection_corona_world_p5 <- infection_corona_world1 %>% filter(day == '6', mont
 infection_corona_world_p6 <- infection_corona_world1 %>% filter(day == '7', month == '2')
 infection_corona_world_p7 <- infection_corona_world1 %>% filter(day == '8', month == '2')
 infection_corona_world <- rbind(infection_corona_world_p1, infection_corona_world_p2, infection_corona_world_p3, infection_corona_world_p5,infection_corona_world_p6, infection_corona_world_p7, infection_corona_world_p4 )
+infection_corona_world
 
 # get sum of deaths and sum of cases over the selected timespan
 sumDeaths <- aggregate(infection_corona_world$deaths, by=list(Category=infection_corona_world$countriesAndTerritories), FUN=sum)
@@ -92,6 +93,7 @@ Define a distance value
 # determine the manhattan distance (Absolute distance between the two vectors) on the Europe data
 #begin world
 infection_corona_world_dist = dist(infection_corona_world[,7:8]) #, method = "manhattan"
+# 7 and 8 are the lLat and Long
 #end world
 
 
