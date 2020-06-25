@@ -1,10 +1,12 @@
 
 # Loading...
 ```{r}
+print(Sys.info()[4])
 switch(Sys.info()[4]
        , Bakbeestje = setwd("~/Nextcloud/TUE/Current/2IMG10 - Topological Data Analysis/2img10-group-6")
        )
 
+print(getwd())
 source("bootstrap.R")
 
 

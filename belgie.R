@@ -13,7 +13,8 @@ dfFr  <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
           Taal = TX_RGN_DESCR_NL, 
           Cases = CASES,
           Municipality = TX_ADM_DSTR_DESCR_NL ) %>%
-  left_join(zipp, by = "CityFR" , suffix = c("",".x")) 
+  left_join(zipp, by = "CityFR" , suffix = c("",".x")) %>%
+  drop_na()
 dfNl  <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
   select(DATE, `TX_DESCR_NL`, `TX_PROV_DESCR_NL`, `TX_ADM_DSTR_DESCR_NL`,`TX_DESCR_FR`,`TX_RGN_DESCR_NL`, `CASES`)  %>%
   rename( dateRep = DATE, 
@@ -23,8 +24,9 @@ dfNl  <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
           Taal = TX_RGN_DESCR_NL, 
           Cases = CASES,
           Municipality = TX_ADM_DSTR_DESCR_NL ) %>%
-  left_join(zipp, by = "City" , suffix = c("",".x")) 
-
+  left_join(zipp, by = "City" , suffix = c("",".x")) %>%
+  drop_na()
+df <- full_join(dfFr, dfNl)
 # Bailing out: appearently data *Changes* depending on appending the french or dutch coordinates. 
 
 df$Cases[which(df$Cases == "<5")] = 0
@@ -41,4 +43,4 @@ df <- na.locf(df)
 
 
 belgie <- df
-rm(df,zipp)
+rm(df,zipp, dfNl, dfFr)
