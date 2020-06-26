@@ -41,6 +41,14 @@ df <- df %>%
   pivot_wider(names_from = dateRep, values_from = Cases) #%>%
 df <- na.locf(df)
 
+# daily new infected -> sum of infected per day
+for (i in 1:nrow(df)){
+  temp <- as.numeric(df[i,11])
+  for (j in 12:ncol(df)){
+    temp <- as.numeric(temp) + as.numeric(df[i,j])
+    df[i,j] <- temp
+  }
+}
 
 belgie <- df
-rm(df,zipp, dfNl, dfFr)
+rm(df,zipp, dfNl, dfFr,temp)
