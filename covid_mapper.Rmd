@@ -72,6 +72,7 @@ setwd(tempwd)
 
 # Read csv's as list
 temp = list.files(pattern="*.csv")
+temp
 infections = lapply(temp, read.delim, header = TRUE, sep = ";", stringsAsFactors = FALSE)
 
 # Set wd back
@@ -92,11 +93,15 @@ Do some merging so that we have both the coordinate and infection data in each d
 merged = list();
 coords_popdensity <- merge(x=coords, y=popdensity, by.x=c('Municipality'), by.y=c('Gemeente'), sort = TRUE)
 
+
 # Not the most efficient but it does the job,
 # we see that not all files have the same format so we check for the 2 most common ones
+i = 1
 for (inf in infections) {
-  
-  
+  d = substr(temp[[i]], 6,9)
+  print(d)
+  inf$Date <- d
+  inf[is.na(inf)] <- 0
   if("Gemeente" %in% colnames(inf)) {
     
     new = merge(x=coords_popdensity, y=inf, by.x=c('Municipality'), by.y=c('Gemeente'), sort = TRUE)
@@ -108,9 +113,10 @@ for (inf in infections) {
     merged <- c(merged, list(new))
     
   } # Disregard others
-  
+  i = i + 1
 }
-
+merged
+bothbeams.data[is.na(bothbeams.data)] <- 0
 # Show a merged dataframe
 print(merged[[44]])
 
@@ -171,10 +177,12 @@ plot_mapper <- function (mapper) {
 }
 
 # Grab some data
-first = merged[[1]]
-second = merged[[4]]
-third = merged[[44]]
-
+first = merged[[3]] # 03/03
+second = merged[[32]] # 20/03
+third = merged[[1]] # 01/04
+first
+second
+third
 firstMapper = create_tda_mapper(first$Aantal, first$Latitude, first$Longitude)
 plot_mapper(firstMapper)
 
@@ -192,7 +200,7 @@ A more advanced example using the networkD3 library which yields way nicer visua
 # library(networkD3)
 
 # Create a mapper object
-mapper = create_tda_mapper(first$Aantal, first$Latitude, first$Longitude, 20, 10, 30)
+mapper = create_tda_mapper(third$Aantal, third$Latitude, third$Longitude, 20, 10, 30)
 
 
 plotForceNetwork <- function(mapper, labels) {
@@ -203,7 +211,7 @@ plotForceNetwork <- function(mapper, labels) {
     Nodes = MapperNodes, Links = MapperLinks, 
     Source = "Linksource", Target = "Linktarget",
     Value = "Linkvalue", NodeID = "Nodename",
-    Group = "Nodegroup", opacity = 1, 
+    Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
     linkDistance = 25, charge = -10,
     Nodesize = "Nodesize", legend = T
   ) 
@@ -218,45 +226,49 @@ Other mapper solutions:
 More advanced force network which computes some other statistics on the nodes
 
 ```{r}
-mapper = create_tda_mapper(first$Aantal, first$Inwoners.per.km2, first$Inwoners.per.km2)
+mapper = create_tda_mapper(second$Aantal, second$Longitude, second$Latitude, 20, 10, 30)
 
-MapperNodes <- mapperVertices(mapper, first$Aantal )
+MapperNodes <- mapperVertices(mapper, second$Aantal )
 MapperLinks <- mapperEdges(mapper)
 
 
 municipalities <- MapperNodes$Nodename
-
+sums <- c()
 # Map countries to label names
 for (i in (1: nrow(MapperNodes))){
+  sum = 0
   temp <- paste("V",i, ":", sep= "")
   split <- strsplit(MapperNodes$Nodename[i], " ")
+
   for (j in (2 : (length(split[[1]])) ) ) {
-    mun <-  first$Municipality[as.integer(gsub(",","",split[[1]][j]))]
-    temp <- paste(temp, mun)
+    num_other = as.integer(gsub(",","",split[[1]][[j]]))
+    index = match(num_other, second$Aantal)
+    prov <-  second$Municipality[[index]]
+    sum <- sum + num_other
+    temp <- paste(temp, prov)
   }
+  sums[i] <- sum
   municipalities[i] <- paste(temp, sep = ", ")
 }
+
 for (i in (1: nrow(MapperNodes))){
   MapperNodes$Nodegroup[i] <- i
 }
 
-# Compute mean
-vertex.mean = c()
-mapper$points_in_level_set
-for (i in 1:length(mapper$points_in_vertex)){
-  vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
-}
 
-
-MapperNodes$Nodesize <- vertex.mean
+MapperNodes$Nodesize <- sums*0.02
 MapperNodes$Nodename <- municipalities
+MapperNodes$NodeCases <- sums
 
+municipalities
+
+MapperNodes
 
 forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
             Source = "Linksource", Target = "Linktarget",
-            Value = "Linkvalue", NodeID = "Nodename",
+            Value = "Linkvalue", NodeID = "Nodegroup",
             Group = "Nodename", opacity = 1, opacityNoHover = 1,
-            linkDistance = 100, charge = -20,legend = TRUE,
+            linkDistance = 75, charge = -10,
             Nodesize = "Nodesize")  
 ```
 
@@ -305,28 +317,360 @@ fviz_cluster(kmeans.third, data = third.subset,
 
 ```
 
+
 Define a custom filter function
 
 ```{r}
 # print(kmeans.first)
-density(first$Aantal)
-print(density(first$Aantal))
-plot(density(first$Aantal),col="blueviolet")
-# print(kmeans.first$cluster)
-print(kmeans.first$centers)
+prov_first = setNames(aggregate(first$Aantal, by=list(Province=first$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(first$Latitude, by=list(Province=first$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(first$Longitude, by=list(Province=first$Province), FUN=mean), c('Province', 'Longitude'))
+prov_first = merge(prov_first, prov_lat, by.x="Province", by.y="Province")
+prov_first = merge(prov_first, prov_long, by.x="Province", by.y="Province")
+prov_first
 
-# Load the data 
-data("multishapes", package = "factoextra")
-df <- first.subset
-dbscan::kNNdistplot(df, k =  2)
-abline(h = 0.15, lty = 2)
-set.seed(444)
-db <- fpc::dbscan(df, eps = 0.15, MinPts = 3)
-fviz_cluster(db, data = df, stand = FALSE, ellipse = FALSE, geom = "point",palette = "jco", ggtheme = theme_classic())
+prov_second = setNames(aggregate(second$Aantal, by=list(Province=second$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(second$Latitude, by=list(Province=second$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(second$Longitude, by=list(Province=second$Province), FUN=mean), c('Province', 'Longitude'))
+prov_second = merge(prov_second, prov_lat, by.x="Province", by.y="Province")
+prov_second = merge(prov_second, prov_long, by.x="Province", by.y="Province")
+prov_second
 
-df <- third.subset
-dbscan::kNNdistplot(df, k =  2)
-abline(h = 30, lty = 2)
-db <- fpc::dbscan(df, eps = 30, MinPts = 3)
-fviz_cluster(db, data = df, stand = FALSE, ellipse = FALSE, geom = "point",palette = "jco", ggtheme = theme_classic())
+
+
+prov_third = setNames(aggregate(third$Aantal, by=list(Province=third$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(third$Latitude, by=list(Province=third$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(third$Longitude, by=list(Province=third$Province), FUN=mean), c('Province', 'Longitude'))
+prov_third = merge(prov_third, prov_lat, by.x="Province", by.y="Province")
+prov_third = merge(prov_third, prov_long, by.x="Province", by.y="Province")
+prov_third
+
+mapper = create_tda_mapper(prov_first$Aantal, prov_first$Longitude, prov_first$Latitude, 20, 10, 30)
+MapperNodes <- mapperVertices(mapper, prov_first$Aantal)
+MapperLinks <- mapperEdges(mapper)
+province <- MapperNodes$Nodename
+sums <- 0
+
+# Map countries to label names
+for (i in (1: nrow(MapperNodes))){
+  print(i)
+  sum = 0
+  temp <- paste("V",i, ":", sep= "")
+  split <- strsplit(MapperNodes$Nodename[i], " ")
+
+  for (j in (2 : (length(split[[1]])) ) ) {
+    num_other = as.integer(gsub(",","",split[[1]][[j]]))
+    index = match(num_other, prov_first$Aantal)
+    print(index)
+    prov <-  prov_first$Province[[index]]
+    sum <- sum + num_other
+    temp <- paste(temp, prov)
+  }
+  
+  province[i] <- paste(temp, sep = ", ")
+  sums[i] <- sum
+  print(province[i])
+
+}
+
+
+MapperNodes$Nodesize <- sums *0.02
+
+for (i in (1: nrow(MapperNodes))){
+  MapperNodes$Nodegroup[i] <- i
+}
+
+means
+MapperNodes$Nodename <- province
+MapperNodes$NodeCases <- sums
+
+MapperNodes
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodegroup",
+            Group = "Nodename", opacity = 1, opacityNoHover = 1,
+            linkDistance = 50, charge = -10,
+            Nodesize = "Nodesize")  
+
+```
+
+
+GERMANY
+
+
+```{r}
+source("bootstrap.R")
+wd = getwd()
+wd
+germanyLatLong <- read_csv("./data/duitsland-latlong.csv") 
+germany <- read_csv("./data/duitsland.csv") %>%
+  rename(
+    dateRep = `time_iso8601`,
+    `Schleswig-Holstein` = de_sh  ,
+    `Hamburg` = de_hh  ,
+    `Niedersachsen` = de_ni  ,
+    `Bremen` = de_hb  ,
+    `Nordrhein-Westfalen`  = de_nw  ,
+    `Hessen` = de_he  ,
+    `Rheinland-Pfalz` =de_rp  ,
+    `Baden-Wurttemberg` = de_bw  ,
+    `Bayern` = de_by  ,
+    `Saarland` = de_sl  ,
+    `Brandenburg`= de_bb  ,
+    `Mecklenburg-Vorpommern` = de_mv  ,
+    `Sachsen` =de_sn  ,
+    `Sachsen-Anhalt` = de_st  ,
+    `Thuringen` = de_th  ,
+    `Berlin` = de_be  ,
+    SumCases = sum_cases
+    ) %>%
+  pivot_longer(-c(dateRep, SumCases ), names_to = "Provinces", values_to = "Cases") %>%
+  select(-c("SumCases")) %>%
+  left_join(germanyLatLong) 
+germany_long <- germany
+germany <- germany %>%
+  pivot_wider(names_from = dateRep, values_from = Cases )
+
+rm(germanyLatLong)
+germany
+```
+
+
+```{r}
+inf = germany$`2020-03-20 17:00:00`
+mapper = create_tda_mapper(inf, germany$Longitude, germany$Latitude, 20, 10, 30)
+MapperNodes <- mapperVertices(mapper, inf)
+MapperLinks <- mapperEdges(mapper)
+province <- MapperNodes$Nodename
+sums <- c()
+# Map countries to label names
+for (i in (1: nrow(MapperNodes))){
+  sum = 0
+  print(i)
+  temp <- paste("V",i, ":", sep= "")
+  split <- strsplit(MapperNodes$Nodename[i], " ")
+
+  for (j in (2 : (length(split[[1]])) ) ) {
+    num_other = as.integer(gsub(",","",split[[1]][[j]]))
+    index = match(num_other, inf)
+    prov <-  germany$Provinces[[index]]
+    temp <- paste(temp, prov)
+    sum <- sum + num_other
+  }
+  
+  province[i] <- paste(temp, sep = ", ")
+  print(province[i])
+  sums[i] <- sum
+
+}
+
+
+
+MapperNodes$Nodesize <- sums * 0.01
+
+for (i in (1: nrow(MapperNodes))){
+  MapperNodes$Nodegroup[i] <- i
+}
+
+MapperNodes$Nodename <- province
+MapperNodes$NodeCases <- sums
+MapperNodes
+
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodegroup",
+            Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
+            linkDistance = 75, charge = -10,
+            Nodesize = "Nodesize")  
+
+```
+
+
+BELGIUM
+
+```{r}
+
+zipp <- read_csv("./data/zipcode-belgium.csv", col_names = c("zip","City" ,"Longitude", "Latitude" ))
+df <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
+  select(DATE, `TX_DESCR_NL`, `TX_PROV_DESCR_NL`, `TX_ADM_DSTR_DESCR_NL`,`TX_RGN_DESCR_NL`, `CASES`)  %>%
+  rename( dateRep = DATE, 
+          Province  =TX_PROV_DESCR_NL , 
+          City = TX_DESCR_NL, 
+          Taal = TX_RGN_DESCR_NL, 
+          Cases = CASES,
+          Municipality = TX_ADM_DSTR_DESCR_NL ) %>%
+  left_join( zipp)
+
+problems(df)
+# wrangling
+df$Cases[which(df$Cases == "<5")] = 0
+df$Cases <- parse_integer(df$Cases)
+
+# Replace NA's with most recent values
+df$Cases <- as.integer(na.locf(df$Cases) )
+
+belgie_long <- df
+# set to match the world data set or NL Data Set
+df <- df %>%
+  pivot_wider(names_from = dateRep, values_from = Cases) #%>%
+df <- na.locf(df)
+
+
+belgie <- df
+rm(df,zipp)
+belgie
+```
+
+
+
+
+```{r}
+
+# print(kmeans.first)
+prov_first = setNames(aggregate(belgie$`2020-03-04`, by=list(Province=belgie$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Longitude'))
+prov_first = merge(prov_first, prov_lat, by.x="Province", by.y="Province")
+prov_first = merge(prov_first, prov_long, by.x="Province", by.y="Province")
+prov_first
+
+prov_second = setNames(aggregate(belgie$`2020-03-20`, by=list(Province=belgie$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Longitude'))
+prov_second = merge(prov_second, prov_lat, by.x="Province", by.y="Province")
+prov_second = merge(prov_second, prov_long, by.x="Province", by.y="Province")
+prov_second
+
+prov_third = setNames(aggregate(belgie$`2020-04-02`, by=list(Province=belgie$Province), FUN=sum), c('Province', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Province=belgie$Province), FUN=mean), c('Province', 'Longitude'))
+prov_third = merge(prov_third, prov_lat, by.x="Province", by.y="Province")
+prov_third = merge(prov_third, prov_long, by.x="Province", by.y="Province")
+prov_third
+
+mapper = create_tda_mapper(prov_first$Aantal, prov_first$Longitude, prov_first$Latitude, 20, 10, 30)
+
+MapperNodes <- mapperVertices(mapper, prov_first$Aantal)
+MapperLinks <- mapperEdges(mapper)
+MapperNodes
+province <- MapperNodes$Nodename
+
+# Map countries to label names
+for (i in (1: nrow(MapperNodes))){
+  print(i)
+  temp <- paste("V",i, ":", sep= "")
+  split <- strsplit(MapperNodes$Nodename[i], " ")
+
+  for (j in (2 : (length(split[[1]])) ) ) {
+    num_other = as.integer(gsub(",","",split[[1]][[j]]))
+    index = match(num_other, prov_first$Aantal)
+    prov <-  prov_first$Province[[index]]
+    temp <- paste(temp, prov)
+  }
+  
+  province[i] <- paste(temp, sep = ", ")
+  print(province[i])
+}
+
+for (i in (1: nrow(MapperNodes))){
+  MapperNodes$Nodegroup[i] <- i
+}
+
+# Compute mean
+vertex.mean = c()
+mapper$points_in_level_set
+for (i in 1:length(mapper$points_in_vertex)){
+  vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
+}
+
+
+MapperNodes$Nodesize <- as.integer(vertex.mean^1.5)
+MapperNodes$Nodename <- province
+MapperNodes
+
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodegroup",
+            Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
+            linkDistance = 75, charge = -10,
+            Nodesize = "Nodesize")  
+
+
+
+```
+
+```{r}
+
+# print(kmeans.first)
+prov_first = setNames(aggregate(belgie$`2020-03-04`, by=list(Municipality=belgie$Municipality), FUN=sum), c('Municipality', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Longitude'))
+prov_first = merge(prov_first, prov_lat, by.x="Municipality", by.y="Municipality")
+prov_first = merge(prov_first, prov_long, by.x="Municipality", by.y="Municipality")
+prov_first
+
+prov_second = setNames(aggregate(belgie$`2020-03-20`, by=list(Municipality=belgie$Municipality), FUN=sum), c('Municipality', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Longitude'))
+prov_second = merge(prov_second, prov_lat, by.x="Municipality", by.y="Municipality")
+prov_second = merge(prov_second, prov_long, by.x="Municipality", by.y="Municipality")
+prov_second
+
+prov_third = setNames(aggregate(belgie$`2020-04-01`, by=list(Municipality=belgie$Municipality), FUN=sum), c('Municipality', 'Aantal'))
+prov_lat = setNames(aggregate(belgie$Latitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Latitude'))
+prov_long = setNames(aggregate(belgie$Longitude, by=list(Municipality=belgie$Municipality), FUN=mean), c('Municipality', 'Longitude'))
+prov_third = merge(prov_third, prov_lat, by.x="Municipality", by.y="Municipality")
+prov_third = merge(prov_third, prov_long, by.x="Municipality", by.y="Municipality")
+prov_third
+
+
+mapper = create_tda_mapper(prov_first$Aantal, prov_first$Longitude, prov_first$Latitude, 20, 10, 30)
+
+MapperNodes <- mapperVertices(mapper, prov_first$Aantal)
+MapperLinks <- mapperEdges(mapper)
+
+# Compute mean
+vertex.mean = c()
+mapper$points_in_level_set
+for (i in 1:length(mapper$points_in_vertex)){
+  vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
+}
+
+municipalities <- MapperNodes$Nodename
+
+
+# Map countries to label names
+for (i in (1: nrow(MapperNodes))){
+  print(i)
+  temp <- paste("V",i, ":", sep= "")
+  split <- strsplit(MapperNodes$Nodename[i], " ")
+
+  for (j in (2 : (length(split[[1]])) ) ) {
+    num_other = as.integer(gsub(",","",split[[1]][[j]]))
+    index = match(num_other, prov_first$Aantal)
+    prov <-  prov_first$Municipality[[index]]
+    temp <- paste(temp, prov)
+  }
+  
+  municipalities[i] <- paste(temp, sep = ", ")
+  print(municipalities[i])
+}
+
+MapperNodes$Nodesize <- as.integer(vertex.mean)
+MapperNodes$Nodename <- municipalities
+
+MapperNodes
+
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodegroup",
+            Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
+            linkDistance = 75, charge = -15,
+            Nodesize = "Nodesize")  
+
+
+
 ```

@@ -31,12 +31,13 @@ cases <- belgie_long$Cases[!is.na(belgie_long$Cases)]
 cases <- belgie$`2020-05-02`
 print(cases)
 
-
+belgie
+belgie_long
 distmatrix <- dist(data.frame(long , lat ) ) 
 filterValues <- cases
 nodelabels <- city
 
-plotForceFromDist(distmatrix, filterValues, nodelabels)
+# plotForceFromDist(distmatrix, filterValues, nodelabels)
 
 ```
 
