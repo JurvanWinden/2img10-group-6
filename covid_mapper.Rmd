@@ -481,7 +481,7 @@ MapperNodes
 forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
             Source = "Linksource", Target = "Linktarget",
             Value = "Linkvalue", NodeID = "Nodegroup",
-            Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
+            Group = "Nodename", opacity = 1, opacityNoHover = 1,
             linkDistance = 75, charge = -10,
             Nodesize = "Nodesize")  
 
@@ -556,10 +556,11 @@ MapperNodes <- mapperVertices(mapper, prov_first$Aantal)
 MapperLinks <- mapperEdges(mapper)
 MapperNodes
 province <- MapperNodes$Nodename
-
+sums <- 0
 # Map countries to label names
 for (i in (1: nrow(MapperNodes))){
   print(i)
+  sum = 0
   temp <- paste("V",i, ":", sep= "")
   split <- strsplit(MapperNodes$Nodename[i], " ")
 
@@ -568,25 +569,21 @@ for (i in (1: nrow(MapperNodes))){
     index = match(num_other, prov_first$Aantal)
     prov <-  prov_first$Province[[index]]
     temp <- paste(temp, prov)
+    sum <- sum + num_other
   }
   
   province[i] <- paste(temp, sep = ", ")
   print(province[i])
+  sums[i] <- sum
 }
 
 for (i in (1: nrow(MapperNodes))){
   MapperNodes$Nodegroup[i] <- i
 }
 
-# Compute mean
-vertex.mean = c()
-mapper$points_in_level_set
-for (i in 1:length(mapper$points_in_vertex)){
-  vertex.mean <- c(vertex.mean, mean(mapper$points_in_vertex[[i]]))
-}
 
-
-MapperNodes$Nodesize <- as.integer(vertex.mean^1.5)
+MapperNodes$Nodesize <- sums * 0.02
+MapperNodes$NodeCases <- sums
 MapperNodes$Nodename <- province
 MapperNodes
 
@@ -594,7 +591,7 @@ MapperNodes
 forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
             Source = "Linksource", Target = "Linktarget",
             Value = "Linkvalue", NodeID = "Nodegroup",
-            Group = "Nodegroup", opacity = 1, opacityNoHover = 1,
+            Group = "Nodename", opacity = 1, opacityNoHover = 1,
             linkDistance = 75, charge = -10,
             Nodesize = "Nodesize")  
 
