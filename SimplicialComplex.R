@@ -1,4 +1,5 @@
 #FIRST RUN "corona_datasets.R"
+library("deldir")
 
 preprocess<-function(dataset){
   new_dataset<-dataset[1:(nrow(dataset)-1),]
@@ -48,15 +49,18 @@ calculateTriangleValues<-function(k,ds,df_input,c,val_name){
   return(df_input)
 }
 
-plotTriangles<-function(trianList_NL,ds,df_input,c,title,val_name,colval_name,maxVal,minVal,color){
+plotTriangles<-function(trianList_NL,ds,df_input,c,title,val_name,colval_name,maxVal,minVal,color,export){
     for(r in 1:nrow(df_input)){
       colval<-(df_input[r,val_name] + abs(minVal))/(maxVal  + abs(minVal))
       if(!is.na(colval)){
         df_input[r,colval_name] <- colval
       }
     }
+  if(export){
+  file_name <- paste(paste("C:/Users/s144740/Documents/Schooljaar 6/Topological data analysis/images/",gsub(" ","_",gsub(":","_",now())),'delaunay',title,names(ds)[c],sep="_"),'jpg',sep='.')
+  jpeg(file_name, width = 400, height = 400)
   #plot the triangles and their colours
-  plot(trianList_NL, main=paste(title,names(ds)[c],sep=" "))
+  plot(trianList_NL, main=paste(title,names(ds)[c],sep=" "), xlab = NA, ylab = NA)
   for(t in 1:nrow(df_input)){
     if(color=='red'){
       polygon(x=c(df_input[t,'x1'],df_input[t,'x2'],df_input[t,'x3']),y=c(df_input[t,'y1'],df_input[t,'y2'],df_input[t,'y3']),col=rgb(1,1-df_input[t,colval_name],1-df_input[t,colval_name]))
@@ -66,6 +70,19 @@ plotTriangles<-function(trianList_NL,ds,df_input,c,title,val_name,colval_name,ma
       polygon(x=c(df_input[t,'x1'],df_input[t,'x2'],df_input[t,'x3']),y=c(df_input[t,'y1'],df_input[t,'y2'],df_input[t,'y3']),col=rgb(1-df_input[t,colval_name],1,1-df_input[t,colval_name]))
     }
   }
+  dev.off()}
+  else{
+    plot(trianList_NL, main=paste(title,names(ds)[c],sep=" "), xlab = NA, ylab = NA)
+    for(t in 1:nrow(df_input)){
+      if(color=='red'){
+        polygon(x=c(df_input[t,'x1'],df_input[t,'x2'],df_input[t,'x3']),y=c(df_input[t,'y1'],df_input[t,'y2'],df_input[t,'y3']),col=rgb(1,1-df_input[t,colval_name],1-df_input[t,colval_name]))
+      }else if(color=='blue'){
+        polygon(x=c(df_input[t,'x1'],df_input[t,'x2'],df_input[t,'x3']),y=c(df_input[t,'y1'],df_input[t,'y2'],df_input[t,'y3']),col=rgb(1-df_input[t,colval_name],1-df_input[t,colval_name],1))
+      }else if(color=='green'){
+        polygon(x=c(df_input[t,'x1'],df_input[t,'x2'],df_input[t,'x3']),y=c(df_input[t,'y1'],df_input[t,'y2'],df_input[t,'y3']),col=rgb(1-df_input[t,colval_name],1,1-df_input[t,colval_name]))
+      }
+    }
+    }
   return(df_input)
 }
 
@@ -79,6 +96,7 @@ computeDF<-function(trianList_NL,dataset,rad, title){
   
   #fill df with values
   endCol<-ncol(dataset)-2
+  #endCol<-4
   
   for(c in 3:endCol){
     val_name <- paste('value',names(dataset)[c],sep="_")
@@ -89,8 +107,10 @@ computeDF<-function(trianList_NL,dataset,rad, title){
   return(df)
 }
 
-plotAll<-function(trianList_NL,df,dataset,title,color){
+plotAll<-function(trianList_NL,df,dataset,title,color, export){
   endCol<-ncol(dataset)-2
+  #endCol<-4
+  
   maxVal = max(df[1:nrow(df),7:ncol(df)])
   minVal = 0
   for(c in 3:endCol){
@@ -98,18 +118,18 @@ plotAll<-function(trianList_NL,df,dataset,title,color){
     val_name <- paste('value',names(dataset)[c],sep="_")
     print(paste('Plotting ',names(dataset)[c]))
     df[, colval_name]<-0
-    df<-plotTriangles(trianList_NL,dataset,df,c,title,val_name,colval_name,maxVal,minVal,color)
+    df<-plotTriangles(trianList_NL,dataset,df,c,title,val_name,colval_name,maxVal,minVal,color, export)
   }
   return(df)
 }
 
-doEverything<-function(dataset,r,title,color){
+doEverything<-function(dataset,r,title,color, export){
   dataset_preprocessed<-preprocess(dataset)
   print('Data preprocessing complete')
   trianList_NL<-createTrianglesNL(dataset_preprocessed)
   print('Triangulation of the Netherlands complete')
   df<-computeDF(trianList_NL,dataset_preprocessed,r,title)
-  df<-plotAll(trianList_NL,df,dataset_preprocessed,title,color)
+  df<-plotAll(trianList_NL,df,dataset_preprocessed,title,color, export)
   return(df)
 }
 
@@ -119,10 +139,8 @@ doEverything<-function(dataset,r,title,color){
 # - a constant with which the radius will be multiplied (to be chosen after experimentation), might differ per dataset
 # - a title for the plots (main will be title + column name (=date))
 # - a color, 'red', 'blue', or 'green', for the plot
-NL_hospitalizations<-doEverything(Corona_NL_Hospitalizations_municipality,1/200,"NL hospitalizations ",'red')
-NL_infections<-doEverything(Corona_NL_Infections_municipality,1/120,"NL infections ",'blue')
-
-
+NL_hospitalizations<-doEverything(Corona_NL_Hospitalizations_municipality,1/200,"NL hospitalizations ",'red', TRUE)
+NL_infections<-doEverything(Corona_NL_Infections_municipality,1/120,"NL infections ",'blue', TRUE)
 
 #Below are just some notes, do not mind this.
 
