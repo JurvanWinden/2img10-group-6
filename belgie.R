@@ -2,6 +2,9 @@
 # Load in the data 
 # https://epistat.wiv-isp.be/covid/
 
+library("tidyverse")
+library("zoo")
+
 zipp <- read_csv("./data/zipcode-belgium.csv", col_names = c("zip","City" ,"Longitude", "Latitude" )) %>%
   mutate(CityFR = City)
 dfFr  <- read_csv("data/COVID19BE_CASES_MUNI.csv") %>%
